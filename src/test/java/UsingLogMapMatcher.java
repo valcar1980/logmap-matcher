@@ -24,21 +24,27 @@ import java.util.Set;
 public class UsingLogMapMatcher {
 
 	
-	OWLOntology onto1;
-	OWLOntology onto2;
-
-	OWLOntologyManager onto_manager;
+	/*
+	 * OWLOntology onto1; OWLOntology onto2;
+	 * 
+	 * OWLOntologyManager onto_manager;
+	 * 
+	 */
 	
-	public UsingLogMapMatcher(){
+	public UsingLogMapMatcher() {
+		
+	}
+
+	public Set<MappingObjectStr> createMappings(String onto1_iri, String onto2_iri){
 		
 		try{
 			
-			String onto1_iri = "file:/home/valentina/MyData/onto_bioportal/CVRG_EPOntology.owl";
-			String onto2_iri = "file:/home/valentina/MyData/onto_bioportal/MIO.owl";
+			//String onto1_iri = "file:/home/valentina/MyData/onto_bioportal/CVRG_EPOntology.owl";
+			//String onto2_iri = "file:/home/valentina/MyData/onto_bioportal/MIO.owl";
 			//String onto1_iri = "file:/home/ernesto/oaei_2012/fma2nci/oaei2012_FMA_small_overlapping_nci.owl";
 			//String onto2_iri = "file:/home/ernesto/oaei_2012/fma2nci/oaei2012_NCI_small_overlapping_fma.owl";
 			
-			onto_manager = OWLManager.createOWLOntologyManager();
+			OWLOntologyManager onto_manager = OWLManager.createOWLOntologyManager();
 			
 			//In case an import is broken
 			OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
@@ -47,9 +53,9 @@ public class UsingLogMapMatcher {
 			config = config.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
 			onto_manager.setOntologyLoaderConfiguration(config);
 			System.out.println("Loading the first ontology " + onto1_iri);
-			onto1 = onto_manager.loadOntology(IRI.create(onto1_iri));
+			OWLOntology onto1 = onto_manager.loadOntology(IRI.create(onto1_iri));
 			System.out.println("Loading the second ontology " + onto2_iri);
-			onto2 = onto_manager.loadOntology(IRI.create(onto2_iri));
+			OWLOntology onto2 = onto_manager.loadOntology(IRI.create(onto2_iri));
 			
 			System.out.println("Starting the matching task using LogMap2_Matcher");
 			LogMap2_Matcher logmap2 = new LogMap2_Matcher(onto1, onto2);
@@ -60,33 +66,33 @@ public class UsingLogMapMatcher {
 			Set<MappingObjectStr> logmap2_mappings = logmap2.getLogmap2_Mappings();
 			
 			System.out.println("Number of mappings computed by LogMap: " + logmap2_mappings.size());
-			
-			
-			
-			  // Accessing mapping objects
-			   
-			for (MappingObjectStr mapping: logmap2_mappings){
-				System.out.println("\t Mapping: ");
-				System.out.println("Entity from ontology 1 \t"+ mapping.getIRIStrEnt1());
-				System.out.println("Entity from ontology 2 \t"+ mapping.getIRIStrEnt2());
-				System.out.println("Confidence in the mapping \t"+ mapping.getConfidence());
-				
-				//MappingObjectStr.EQ or MappingObjectStr.SUB or MappingObjectStr.SUP
-				System.out.println("Mapping direction \t"+ mapping.getMappingDirection()); //Utilities.EQ;
-				
-				//MappingObjectStr.CLASSES or MappingObjectStr.OBJECTPROPERTIES or MappingObjectStr.DATAPROPERTIES or MappingObjectStr.INSTANCES
-				System.out.println("Mapping type \t"+ mapping.getTypeOfMapping());
-				
-			}
-			
+			return logmap2_mappings;
 		}
 		catch (Exception e){
 			e.printStackTrace();
+			
 		}
+		return null;
+		
 		
 	}
 	
+public static void printOntologyMappings(Set<MappingObjectStr> onto_mapping){
 	
+	for (MappingObjectStr mapping: onto_mapping){
+		System.out.println("\t Mapping: ");
+		System.out.println("Entity from ontology 1 \t"+ mapping.getIRIStrEnt1());
+		System.out.println("Entity from ontology 2 \t"+ mapping.getIRIStrEnt2());
+		System.out.println("Confidence in the mapping \t"+ mapping.getConfidence());
+		
+		//MappingObjectStr.EQ or MappingObjectStr.SUB or MappingObjectStr.SUP
+		System.out.println("Mapping direction \t"+ mapping.getMappingDirection()); //Utilities.EQ;
+		
+		//MappingObjectStr.CLASSES or MappingObjectStr.OBJECTPROPERTIES or MappingObjectStr.DATAPROPERTIES or MappingObjectStr.INSTANCES
+		System.out.println("Mapping type \t"+ mapping.getTypeOfMapping());
+	
+		}
+	}
 	
 	
 	/**
@@ -94,7 +100,12 @@ public class UsingLogMapMatcher {
 	 */
 	public static void main(String[] args) {
 		long startTime = System.nanoTime();
-		new UsingLogMapMatcher();
+		String onto1_iri = "file:/home/valentina/MyData/onto_bioportal/CVRG_EPOntology.owl";
+		String onto2_iri = "file:/home/valentina/MyData/onto_bioportal/MIO.owl";
+		UsingLogMapMatcher myLogMap = new UsingLogMapMatcher();
+		
+		Set<MappingObjectStr> onto_mappings = myLogMap.createMappings(onto1_iri,onto2_iri);
+		printOntologyMappings(onto_mappings);
 		long endTime = System.nanoTime();
 		System.out.println("Map matching task completed.\t" + Math.floor((endTime-startTime)/10e9) + " seconds elapsed");
 
