@@ -100,8 +100,11 @@ public static void printOntologyMappings(Set<MappingObjectStr> onto_mapping){
 	 */
 	public static void main(String[] args) {
 		long startTime = System.nanoTime();
-		String onto1_iri = "file:/home/valentina/MyData/onto_bioportal/CVRG_EPOntology.owl";
-		String onto2_iri = "file:/home/valentina/MyData/onto_bioportal/MIO.owl";
+		//String onto1_iri = "file:/home/valentina/MyData/onto_bioportal/CVRG_EPOntology.owl";
+		//String onto2_iri = "file:/home/valentina/MyData/onto_bioportal/MIO.owl";
+		
+		String onto1_iri = "file:/home/valentina/git-repos/test-data/test_onto_input/HPI.owl";
+		String onto2_iri = "file:/home/valentina/git-repos/test-data/test_onto_input/PDO_ver0.7.owl";
 		UsingLogMapMatcher myLogMap = new UsingLogMapMatcher();
 		
 		Set<MappingObjectStr> onto_mappings = myLogMap.createMappings(onto1_iri,onto2_iri);

@@ -3,6 +3,7 @@ package uk.ac.ox.krr.logmap2.test.bioportal;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 
@@ -15,6 +16,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
 import uk.ac.ox.krr.logmap2.bioportal.MediatingOntologyExtractor;
+import uk.ac.ox.krr.logmap2.bioportal.RESTBioPortalAccess;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
 public class FindAndStoreTopMediatingOntologies {
@@ -92,8 +94,14 @@ public class FindAndStoreTopMediatingOntologies {
 	
 	public static void printMediatingOntologies(List<String>  selectedMediatingOntologies) {
 
-		for (int i=0; i<selectedMediatingOntologies.size(); i++){
-			System.out.println(selectedMediatingOntologies.get(i));
+		if (selectedMediatingOntologies.size()<1 ){
+			System.out.println("No mediating ontologies found");
+			
+		}
+		else {
+			for (int i=0; i<selectedMediatingOntologies.size(); i++){
+				System.out.println(selectedMediatingOntologies.get(i));
+			}
 		}
 		
 	}
@@ -106,23 +114,48 @@ public class FindAndStoreTopMediatingOntologies {
 		 * 
 		 */
 
-		long startTime = System.nanoTime();
-		String onto1_iri = "file:/home/valentina/MyData/onto_bioportal/CVRG_EPOntology.owl";
-		String onto2_iri = "file:/home/valentina/MyData/onto_bioportal/MIO.owl";
-		FindAndStoreTopMediatingOntologies  myLogMap = new FindAndStoreTopMediatingOntologies();
+		/*
+		 * long startTime = System.nanoTime(); //String onto1_iri =
+		 * "file:/home/valentina/MyData/onto_bioportal/CVRG_EPOntology.owl"; //String
+		 * onto2_iri = "file:/home/valentina/MyData/onto_bioportal/MIO.owl";
+		 * 
+		 * String onto1_iri =
+		 * "file:/home/valentina/Downloads/anatomy-dataset/human.owl"; String onto2_iri
+		 * = "file:/home/valentina/Downloads/anatomy-dataset/mouse.owl";
+		 * 
+		 * FindAndStoreTopMediatingOntologies myLogMap = new
+		 * FindAndStoreTopMediatingOntologies();
+		 * 
+		 * LogMap2_Matcher onto_mappings = myLogMap.createMappings(onto1_iri,onto2_iri);
+		 * printOntologyMappings(onto_mappings); Set<String> representative_labels =
+		 * onto_mappings.getRepresentativeLabelsForMappings(); long endTime =
+		 * System.nanoTime(); System.out.println("Map matching task completed.\t" +
+		 * Math.floor((endTime-startTime)/10e9) + " seconds elapsed");
+		 * 
+		 * startTime = System.nanoTime(); MediatingOntologyExtractor mo_extract = new
+		 * MediatingOntologyExtractor(representative_labels); endTime =
+		 * System.nanoTime(); System.out.println("Extracted mediating ontologies.\t" +
+		 * Math.floor((endTime-startTime)/10e9) + " seconds elapsed"); List<String>
+		 * mediating_ontologies = mo_extract.getSelectedMediatingOntologies();
+		 * printMediatingOntologies(mediating_ontologies);
+		 */
 		
-		LogMap2_Matcher onto_mappings = myLogMap.createMappings(onto1_iri,onto2_iri);
-		printOntologyMappings(onto_mappings);
-		Set<String> representative_labels = onto_mappings.getRepresentativeLabelsForMappings();
-		long endTime = System.nanoTime();
-		System.out.println("Map matching task completed.\t" + Math.floor((endTime-startTime)/10e9) + " seconds elapsed");
+		//TODO Save Mediating Ontologies list to file
 		
-		startTime = System.nanoTime();
-		MediatingOntologyExtractor mo_extract = new MediatingOntologyExtractor(representative_labels);
-		endTime = System.nanoTime();
-		System.out.println("Extracted mediating ontologies.\t" + Math.floor((endTime-startTime)/10e9) + " seconds elapsed");
-		List<String> mediating_ontologies = mo_extract.getSelectedMediatingOntologies();
-		printMediatingOntologies(mediating_ontologies);
+		
+		RESTBioPortalAccess bioportal = new RESTBioPortalAccess();
+		if (bioportal.isActive()) {
+			
+			System.out.println("BioPortal is active: ");
+			OWLOntology MO_download = bioportal.downLoadOntology("MIO", 3);
+			System.out.println("Downloaded ontology" + MO_download.getOntologyID());
+			/*
+			 * for (int i=0; i<mediating_ontologies.size(); i++) { // Fetch the ontology
+			 * from Bioportal OWLOntology MO_download =
+			 * bioportal.downLoadOntology(mediating_ontologies.get(i), 3);
+			 * System.out.println("Downloaded ontology" + MO_download.getOntologyID()); }
+			 */
+		}
 	}	
 }
 		
