@@ -1,6 +1,7 @@
 
 package uk.ac.ox.krr.logmap2.test.bioportal;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Calendar;
@@ -8,13 +9,17 @@ import java.util.List;
 import java.util.Set;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
+import uk.ac.ox.krr.logmap2.OntologyLoader;
 import uk.ac.ox.krr.logmap2.bioportal.MediatingOntologyExtractor;
 import uk.ac.ox.krr.logmap2.bioportal.RESTBioPortalAccess;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
@@ -147,8 +152,25 @@ public class FindAndStoreTopMediatingOntologies {
 		if (bioportal.isActive()) {
 			
 			System.out.println("BioPortal is active: ");
-			OWLOntology MO_download = bioportal.downLoadOntology("MIO", 3);
+			String onto_label = "MIO";
+			OWLOntology MO_download = bioportal.downLoadOntology(onto_label, 3);
 			System.out.println("Downloaded ontology" + MO_download.getOntologyID());
+			System.out.println("Number of axioms: " + MO_download.getAxiomCount());
+			
+			//Create a file for the new format
+			String base_output_path ="/home/valentina/git-repos/test-data/test_onto_output/";
+			String mo_output_path = base_output_path + onto_label + ".owl";
+			System.out.println("Storing ontology at " + mo_output_path);
+			File outFile= new File(mo_output_path);
+			OWLOntologyManager onto_manager = OWLManager.createOWLOntologyManager();
+			OWLDocumentFormat format = new RDFXMLDocumentFormat();
+			IRI outputStream = IRI.create(outFile);
+			try {
+				onto_manager.saveOntology(MO_download, format, outputStream);
+			} catch (OWLOntologyStorageException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			/*
 			 * for (int i=0; i<mediating_ontologies.size(); i++) { // Fetch the ontology
 			 * from Bioportal OWLOntology MO_download =
