@@ -1,6 +1,11 @@
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
@@ -17,7 +22,28 @@ public class StoreMediatingOntologies {
 	// constructor
 	public StoreMediatingOntologies() {}
 			
-			
+	public List<String> getOntologyListFromFile(String filePath) throws IOException {
+		
+		// list that holds strings of a file
+        List<String>  listOfStrings = new ArrayList<String>();
+      
+        // load data from file
+        BufferedReader bf = new BufferedReader(new FileReader(filePath));
+      
+        // read entire line as string
+        String line = bf.readLine();
+      
+        // checking for end of file
+        while (line != null) {
+            listOfStrings.add(line);
+            line = bf.readLine();
+        }
+      
+        // closing bufferreader object
+        bf.close();
+      		
+		return listOfStrings;
+	}	
 			
 	public void saveOntology(String ontoLabel, OWLOntology inputOntology, String basePath){
 	
@@ -56,11 +82,22 @@ public class StoreMediatingOntologies {
 	}
 	
 	public static void main(String[] args) {
-		String basePath ="/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/";
-		String ontoLabel = "MIO";
-		StoreMediatingOntologies moStorer = new StoreMediatingOntologies();
-		OWLOntology moDownload = moStorer.CallBioPortal(ontoLabel, basePath);
-		moStorer.saveOntology(ontoLabel, moDownload, basePath);
+//		String basePath ="/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/";
+//		String ontoLabel = "MIO";
+			StoreMediatingOntologies moStorer = new StoreMediatingOntologies();
+//		OWLOntology moDownload = moStorer.CallBioPortal(ontoLabel, basePath);
+//		moStorer.saveOntology(ontoLabel, moDownload, basePath);
+		
+		String listFile = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/logmap_top10_mediating_ontologies.txt";
+		try {
+			List<String> moList = moStorer.getOntologyListFromFile(listFile);
+			for (String ontoStr: moList) {
+				System.out.println(ontoStr);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		System.out.println("All Stored");
 	}
 	
