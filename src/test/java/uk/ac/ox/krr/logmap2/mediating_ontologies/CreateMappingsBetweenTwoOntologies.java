@@ -11,13 +11,13 @@ import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
+import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
 public class CreateMappingsBetweenTwoOntologies {
 	
 
 	public CreateMappingsBetweenTwoOntologies() {
 		
-
 	}
 
 	public LogMap2_Matcher createMappings(String onto1_iri, String onto2_iri) {
@@ -56,10 +56,31 @@ public class CreateMappingsBetweenTwoOntologies {
 		}
 		return null;
 	}
+	
+	public void saveMappings(boolean shouldSave, LogMap2_Matcher logmap2, String parent_path) {
+		
+		if (shouldSave = true) {
+			
+			try {
+				logmap2.saveMappings(parent_path);
+				System.out.println("Mappings saved to " + parent_path);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		else {}
+		
+	}
 
 	public static void main(String[] args) {
 		
-		System.out.println("Example ontologies for Mapping");
+		// The parent folder should already exist - don't forget the last "/" !
+		String parent_folder = "/home/valentina/git-repos/test-data/test_onto_output/test_mapping_store/";
+		System.out.println("Parent folder to store mappings" + parent_folder);
+		
+		System.out.println("Example ontologies for mapping");
 		String onto1_iri = "file:/home/valentina/MyData/onto_bioportal/CVRG_EPOntology.owl";
 		String onto2_iri = "file:/home/valentina/MyData/onto_bioportal/MIO.owl";
 		System.out.println(onto1_iri + "\n" + onto2_iri);
@@ -73,7 +94,7 @@ public class CreateMappingsBetweenTwoOntologies {
 		long endTime = System.nanoTime();
 		System.out.println(
 				"Map matching task completed.\t" + Math.floor((endTime - startTime) / 10e9) + " seconds elapsed");
-
+		myLogMap.saveMappings(true, onto_mappings, parent_folder);
 		
 
 	}

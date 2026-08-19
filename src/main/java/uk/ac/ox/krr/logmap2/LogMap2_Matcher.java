@@ -113,7 +113,7 @@ public class LogMap2_Matcher {
 	}
 	
 
-	private void saveMappings(String output_path) throws Exception {
+	public void saveMappings(String output_path) throws Exception {
 		
 		//Output: saved by default
 		saveLogMapMappings(getLogmap2_Mappings(), output_path, "logmap_mappings");

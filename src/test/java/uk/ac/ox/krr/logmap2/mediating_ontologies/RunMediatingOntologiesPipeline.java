@@ -14,6 +14,7 @@ public class RunMediatingOntologiesPipeline {
 		System.out.println("Starting Mediating Ontologies Pipeline");
 		CreateMappingsBetweenTwoOntologies onto_mapper = new CreateMappingsBetweenTwoOntologies();
 		LogMap2_Matcher onto_mappings = onto_mapper.createMappings(onto1_iri, onto2_iri);
+		
 		FetchMediatingOntologies fetch_mo = new FetchMediatingOntologies();
 		fetch_mo.main(args);
 		
