@@ -112,38 +112,37 @@ public class FindAndStoreTopMediatingOntologies {
 	}
 
 	public static void main(String[] args) {
-		/*
-		 * The list of ontologies will be private List<String>
-		 * selectedMediatingOntologies = new ArrayList<String>(); coming from
-		 * MediatingOntologyExtractor in the package uk.ac.ok.krr.logmap2.bioportal
-		 * 
-		 */
+		
+//		  The list of ontologies will be private List<String>
+//		  selectedMediatingOntologies = new ArrayList<String>(); coming from
+//		  MediatingOntologyExtractor in the package uk.ac.ok.krr.logmap2.bioportal
+		  
+		 
 
-		/*
-		 * long startTime = System.nanoTime(); //String onto1_iri =
-		 * "file:/home/valentina/MyData/onto_bioportal/CVRG_EPOntology.owl"; //String
-		 * onto2_iri = "file:/home/valentina/MyData/onto_bioportal/MIO.owl";
-		 * 
-		 * String onto1_iri =
-		 * "file:/home/valentina/Downloads/anatomy-dataset/human.owl"; String onto2_iri
-		 * = "file:/home/valentina/Downloads/anatomy-dataset/mouse.owl";
-		 * 
-		 * FindAndStoreTopMediatingOntologies myLogMap = new
-		 * FindAndStoreTopMediatingOntologies();
-		 * 
-		 * LogMap2_Matcher onto_mappings = myLogMap.createMappings(onto1_iri,onto2_iri);
-		 * printOntologyMappings(onto_mappings); Set<String> representative_labels =
-		 * onto_mappings.getRepresentativeLabelsForMappings(); long endTime =
-		 * System.nanoTime(); System.out.println("Map matching task completed.\t" +
-		 * Math.floor((endTime-startTime)/10e9) + " seconds elapsed");
-		 * 
-		 * startTime = System.nanoTime(); MediatingOntologyExtractor mo_extract = new
-		 * MediatingOntologyExtractor(representative_labels); endTime =
-		 * System.nanoTime(); System.out.println("Extracted mediating ontologies.\t" +
-		 * Math.floor((endTime-startTime)/10e9) + " seconds elapsed"); List<String>
-		 * mediating_ontologies = mo_extract.getSelectedMediatingOntologies();
-		 * printMediatingOntologies(mediating_ontologies);
-		 */
+		
+		  long startTime = System.nanoTime(); 
+		  //String onto1_iri ="file:/home/valentina/MyData/onto_bioportal/CVRG_EPOntology.owl"; 
+		  //String onto2_iri = "file:/home/valentina/MyData/onto_bioportal/MIO.owl";
+		  
+		  String onto1_iri = "file:/home/valentina/Downloads/anatomy-dataset/human.owl"; 
+		  String onto2_iri = "file:/home/valentina/Downloads/anatomy-dataset/mouse.owl";
+		  
+		  FindAndStoreTopMediatingOntologies myLogMap = new
+		  FindAndStoreTopMediatingOntologies();
+		  
+		  LogMap2_Matcher onto_mappings = myLogMap.createMappings(onto1_iri,onto2_iri);
+		  printOntologyMappings(onto_mappings); Set<String> representative_labels =
+		  onto_mappings.getRepresentativeLabelsForMappings(); long endTime =
+		  System.nanoTime(); System.out.println("Map matching task completed.\t" +
+		  Math.floor((endTime-startTime)/10e9) + " seconds elapsed");
+		  
+		  startTime = System.nanoTime(); MediatingOntologyExtractor mo_extract = new
+		  MediatingOntologyExtractor(representative_labels); endTime =
+		  System.nanoTime(); System.out.println("Extracted mediating ontologies.\t" +
+		  Math.floor((endTime-startTime)/10e9) + " seconds elapsed"); List<String>
+		  mediating_ontologies = mo_extract.getSelectedMediatingOntologies();
+		  printMediatingOntologies(mediating_ontologies);
+		 
 		
 		//TODO Save Mediating Ontologies list to file
 		
