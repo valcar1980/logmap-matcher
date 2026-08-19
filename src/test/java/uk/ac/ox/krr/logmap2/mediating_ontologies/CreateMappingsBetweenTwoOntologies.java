@@ -77,19 +77,6 @@ public class CreateMappingsBetweenTwoOntologies {
 	
 	public void saveOntologyMappings(boolean shouldSave, LogMap2_Matcher logmap2, String parent_path) {
 		
-		if (shouldSave = true) {
-			
-			try {
-				logmap2.saveMappings(parent_path);
-				System.out.println("Mappings saved to " + parent_path);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		else {}
-		
 	}
 
 	public static void main(String[] args) {
