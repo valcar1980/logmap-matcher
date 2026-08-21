@@ -1,4 +1,5 @@
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -56,6 +57,34 @@ public class CreateComposedMappings{
 			Set<MappingObjectStr>  mo2onto2_maps = logmap2_mo_i_onto2.getLogmap2_Mappings();
 			System.out.println("Completing the matching task ( mo_i, onto2). Mappings count " + mo2onto2_maps.size());
 			
+			
+			Set<MappingObjectStr>   composed_mappings = new HashSet<MappingObjectStr>();
+			
+			for (MappingObjectStr map_mo1 : mo2onto1_maps){
+				if (!map_mo1.isClassMapping())
+					continue;
+				for (MappingObjectStr map_mo2 : mo2onto2_maps){
+					
+					if (!map_mo2.isClassMapping())
+						continue;
+					
+					if (map_mo1.getIRIStrEnt2().equals(map_mo2.getIRIStrEnt1())){
+			
+						
+						MappingObjectStr mapping = new MappingObjectStr(
+								map_mo1.getIRIStrEnt1(), 
+								map_mo2.getIRIStrEnt2(), 
+								(map_mo1.getConfidence()+map_mo2.getConfidence())/2.0, MappingObjectStr.EQ, MappingObjectStr.CLASSES);
+						
+						composed_mappings.add(mapping);
+					}
+					}					
+			} 
+			
+			System.out.println("There are " + composed_mappings.size() + " composed mappings");
+			//	for (MappingObjectStr cmap:composed_mappings) {
+			//	
+			//}
 			
 		}catch( Exception e) {
 			e.printStackTrace();
