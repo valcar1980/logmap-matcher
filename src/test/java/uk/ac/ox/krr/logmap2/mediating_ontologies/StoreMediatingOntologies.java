@@ -81,8 +81,22 @@ public class StoreMediatingOntologies {
 		}
 	}
 	
+	
+	
+	private static boolean checkOntoPath(String ontoStr, String basePath) {
+		// TODO Auto-generated method stub
+		String ontoPath = basePath + ontoStr + ".owl";
+		File ontoFile = new File(ontoPath);
+		
+		if (ontoFile.exists() && ontoFile.isFile()) {
+			return true;
+		}else {
+		return false;
+		}
+	}
+	
 	public static void main(String[] args) {
-//		String basePath ="/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/";
+		String basePath ="/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/";
 //		String ontoLabel = "MIO";
 			StoreMediatingOntologies moStorer = new StoreMediatingOntologies();
 //		OWLOntology moDownload = moStorer.CallBioPortal(ontoLabel, basePath);
@@ -91,8 +105,31 @@ public class StoreMediatingOntologies {
 		String listFile = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/logmap_top10_mediating_ontologies.txt";
 		try {
 			List<String> moList = moStorer.getOntologyListFromFile(listFile);
+			int countOnto = moList.size();
+			System.out.println("There are" + countOnto + "mediating ontologies in the list");
+			
+			int counter = 1;
 			for (String ontoStr: moList) {
-				System.out.println(ontoStr);
+				
+				System.out.println("Fetching ontology No. " + counter + "label: " +  ontoStr);
+
+				// TODO if file exists, skip
+				
+				boolean isOntoThere = checkOntoPath(ontoStr, basePath);
+				
+				if (isOntoThere == true) {
+				
+					System.out.println("Ontology file already exists at location, skipping");
+					continue;
+				}
+				OWLOntology moDownload = moStorer.CallBioPortal(ontoStr, basePath);
+				System.out.println("Fetched ontology" + ontoStr);
+
+				//TODO store the ontology
+				moStorer.saveOntology(ontoStr, moDownload, basePath);
+				System.out.println("Stored ontology" + ontoStr);
+				
+				counter+=1;
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -100,7 +137,4 @@ public class StoreMediatingOntologies {
 		}
 		System.out.println("All Stored");
 	}
-	
-	
-	
 }
