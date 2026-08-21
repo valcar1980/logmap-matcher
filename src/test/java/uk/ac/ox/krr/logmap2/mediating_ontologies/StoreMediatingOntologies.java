@@ -113,7 +113,7 @@ public class StoreMediatingOntologies {
 			int counter = 1;
 			for (String ontoStr: moList) {
 				
-				System.out.println("Fetching ontology No. " + counter + "label: " +  ontoStr);
+				System.out.println("Fetching ontology No.  " + counter + " label:  " +  ontoStr);
 
 				// TODO if file exists, skip
 				
