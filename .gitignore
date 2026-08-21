@@ -5,3 +5,6 @@ logmap-log.out
 /test-classes/
 /classes/
 .classpath
+.vscode/
+/.apt_generated/
+/.apt_generated_tests/
