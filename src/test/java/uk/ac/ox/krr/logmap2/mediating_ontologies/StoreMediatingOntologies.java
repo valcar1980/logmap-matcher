@@ -14,7 +14,6 @@ import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import uk.ac.ox.krr.logmap2.io. OutPutFilesManager;
 import uk.ac.ox.krr.logmap2.bioportal.RESTBioPortalAccess;
 
 public class StoreMediatingOntologies {
@@ -81,9 +80,12 @@ public class StoreMediatingOntologies {
 		}
 	}
 	
+	public void saveOntologiesFromList() {
+		//TODO clean up the main
+		
+	}
 	
-	
-	private static boolean checkOntoPath(String ontoStr, String basePath) {
+	public boolean checkOntoPath(String ontoStr, String basePath) {
 		// TODO Auto-generated method stub
 		String ontoPath = basePath + ontoStr + ".owl";
 		File ontoFile = new File(ontoPath);
@@ -115,7 +117,7 @@ public class StoreMediatingOntologies {
 
 				// TODO if file exists, skip
 				
-				boolean isOntoThere = checkOntoPath(ontoStr, basePath);
+				boolean isOntoThere = moStorer.checkOntoPath(ontoStr, basePath);
 				
 				if (isOntoThere == true) {
 				

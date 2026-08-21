@@ -76,7 +76,7 @@ public class CreateMappingsBetweenTwoOntologies {
 	}
 	
 	public void saveOntologyMappings(boolean shouldSave, LogMap2_Matcher logmap2, String parent_path) {
-		
+		// TODO
 	}
 
 	public static void main(String[] args) {
