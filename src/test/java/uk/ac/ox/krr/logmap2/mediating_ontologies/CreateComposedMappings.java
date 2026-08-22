@@ -1,5 +1,7 @@
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
+// import java.io.File;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -92,12 +94,13 @@ public class CreateComposedMappings{
 		return composedMappings;
 	}
 	
+	
 	public static void main(String[] args) {
 		
 		
 		String onto1_iri = "file:/home/valentina/Downloads/anatomy-dataset/human.owl";
 		String onto2_iri = "file:/home/valentina/Downloads/anatomy-dataset/mouse.owl";
-		String mo_i_iri = "file:" + "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/MIO.owl";
+		// String mo_i_iri = "file:" + "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/MIO.owl";
 		// String parentPath = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/";
 		// String filePath = parentPath + "logmap_top10_mediating_ontologies.txt";
 		/*
@@ -112,33 +115,63 @@ public class CreateComposedMappings{
 		config = config.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
 		onto_manager.setOntologyLoaderConfiguration(config);
 		
+		
+		String basePath ="/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/";
+//		String ontoLabel = "MIO";
+			StoreMediatingOntologies moStorer = new StoreMediatingOntologies();
+//		OWLOntology moDownload = moStorer.CallBioPortal(ontoLabel, basePath);
+//		moStorer.saveOntology(ontoLabel, moDownload, basePath);
+		
+			
+		/*
+		 * Loop through the list of ontologies and load them one by one to then perform composed mapping	
+		 */
+		String listFile = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/logmap_top10_mediating_ontologies.txt";
 		try {
+			
+			// Load source and target
 			System.out.println("Loading the first ontology " + onto1_iri);
 			OWLOntology onto1 = onto_manager.loadOntology(IRI.create(onto1_iri));
 			System.out.println("Loading the second ontology " + onto2_iri);
 			OWLOntology onto2 = onto_manager.loadOntology(IRI.create(onto2_iri));
-			System.out.println("Loading the mediating ontology " + mo_i_iri);
-			OWLOntology mo_i = onto_manager.loadOntology(IRI.create(mo_i_iri));
-			// System.out.println("Starting the matching task (onto1, mo_i)");
-			// LogMap2_Matcher logmap2_onto1_mo_i = new LogMap2_Matcher(onto1, mo_i);
-			// System.out.println("Completing the matching task (onto1, mo_i) " +logmap2_onto1_mo_i);
-			// Set<MappingObjectStr>  source2mo_maps = logmap2_onto1_mo_i.getLogmap2_Mappings();
-			// System.out.println("Completing the matching task ( mo_i, onto2). Mappings count " + source2mo_maps.size());
 			
-			// System.out.println("Starting the matching task ( mo_i, onto2)");
-			// LogMap2_Matcher logmap2_mo_i_onto2 = new LogMap2_Matcher(mo_i, onto2);
-			// Set<MappingObjectStr>  mo2target_maps = logmap2_mo_i_onto2.getLogmap2_Mappings();
-			// System.out.println("Completing the matching task ( mo_i, onto2). Mappings count " + mo2target_maps.size());
+			// Load mediating ontologies
+			List<String> moList = moStorer.getOntologyListFromFile(listFile);
+			int countOnto = moList.size();
+			System.out.println("There are" + countOnto + "mediating ontologies in the list");
 			
-			CreateComposedMappings mapComposer = new CreateComposedMappings();
-			mapComposer = mapComposer.triangulateOntologies(onto1, onto2, mo_i);
-			Set<MappingObjectStr> s2m = mapComposer.s2mMaps;
-			Set<MappingObjectStr> m2t = mapComposer.m2tMaps;
-			Set<MappingObjectStr>   composedMappings =  mapComposer.aggregateComposedMapping(s2m, m2t);
-			System.out.println("There are " + composedMappings.size() + " composed mappings");
-			//	for (MappingObjectStr cmap:composed_mappings) {
-			//	
-			//}
+			int counter = 1;
+			for (String ontoStr: moList) {
+				OWLOntology mo_i = null;
+				System.out.println("Fetching ontology No.  " + counter + " label:  " +  ontoStr);
+
+				// TODO if file exists, skip
+				
+				boolean isOntoThere = moStorer.checkOntoPath(ontoStr, basePath);
+				
+				if (isOntoThere == true) {
+					String ontoPath = "file:" + basePath + ontoStr + ".owl";
+					System.out.println("Loading the mediating ontology " + ontoPath);
+					mo_i = onto_manager.loadOntology(IRI.create(ontoPath));
+					
+				}else {
+					System.out.println("Ontology " +  ontoStr + "not found, skipping");
+					
+					continue;
+				}
+				// Create composed mapping for mediating ontology mo_i
+				
+
+			
+				CreateComposedMappings mapComposer = new CreateComposedMappings();
+				mapComposer = mapComposer.triangulateOntologies(onto1, onto2, mo_i);
+				Set<MappingObjectStr> s2m = mapComposer.s2mMaps;
+				Set<MappingObjectStr> m2t = mapComposer.m2tMaps;
+				Set<MappingObjectStr>   composedMappings =  mapComposer.aggregateComposedMapping(s2m, m2t);
+				System.out.println("There are " + composedMappings.size() + " composed mappings");
+				// TODO Save these mappings somewhere
+
+			}
 			
 		}catch( Exception e) {
 			e.printStackTrace();
@@ -154,10 +187,8 @@ public class CreateComposedMappings{
 		 */
 		
 		
-		
+	}
 		
 		
 	}
 	
-	
-}
