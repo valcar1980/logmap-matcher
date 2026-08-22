@@ -12,7 +12,7 @@ import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
-// import uk.ac.ox.krr.logmap2.io.OutPutFilesManager;
+import uk.ac.ox.krr.logmap2.io.OutPutFilesManager;
 // import uk.ac.ox.krr.logmap2.LogMap2_OAEI_BioPortal;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
@@ -53,11 +53,13 @@ public class CreateComposedMappings{
 	   System.out.println("Starting the matching task (source, medium)");
 		LogMap2_Matcher sourceMapMedium= new LogMap2_Matcher(source, medium);
 		Set<MappingObjectStr>  s2mMaps = sourceMapMedium.getLogmap2_Mappings();
+		sourceMapMedium.clearIndexStructures();
 		System.out.println("Completing the matching task (source, medium) " +s2mMaps);
 
 		System.out.println("Starting the matching task ( mo_i, target)");
 		LogMap2_Matcher mediumMapTarget = new LogMap2_Matcher(medium, target);
 		Set<MappingObjectStr>  m2tMaps = mediumMapTarget.getLogmap2_Mappings();
+		mediumMapTarget.clearIndexStructures();
 		System.out.println("Completing the matching task ( medium, target). Mappings count " + m2tMaps.size());
 		
 		return new CreateComposedMappings(s2mMaps, m2tMaps);
@@ -100,6 +102,7 @@ public class CreateComposedMappings{
 		
 		String onto1_iri = "file:/home/valentina/Downloads/anatomy-dataset/human.owl";
 		String onto2_iri = "file:/home/valentina/Downloads/anatomy-dataset/mouse.owl";
+		String outPath = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/test-mappings/";
 		// String mo_i_iri = "file:" + "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/MIO.owl";
 		// String parentPath = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/";
 		// String filePath = parentPath + "logmap_top10_mediating_ontologies.txt";
@@ -170,7 +173,11 @@ public class CreateComposedMappings{
 				Set<MappingObjectStr>   composedMappings =  mapComposer.aggregateComposedMapping(s2m, m2t);
 				System.out.println("There are " + composedMappings.size() + " composed mappings");
 				// TODO Save these mappings somewhere
-
+				OutPutFilesManager mapSaver = new OutPutFilesManager();
+				// 5 = AllFlatFormats
+				mapSaver.createOutFiles(outPath + ontoStr, 5, onto1_iri, onto2_iri);
+				mapSaver.addMappings(composedMappings);
+				mapSaver.closeAndSaveFiles();
 			}
 			
 		}catch( Exception e) {
