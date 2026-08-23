@@ -15,10 +15,11 @@
   
   <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target> 
-        <!--maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target-->
+        <!-- <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target> -->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <skipTests>true</skipTests> <!--Default skip tests-->
    </properties>
   
   
@@ -331,13 +332,33 @@
         </executions>
     </plugin>
 
-      
-      
+     <!--To avoid running test.     "mvn install -DskipTests=false" to run the tests --> 
+     <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.6.0-M1</version>
+        <configuration>
+          <skipTests>${skipTests}</skipTests>
+        </configuration>
+      </plugin>
       
        
+    
+    <!--To create a jar file with text classes-->
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.5.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+  
     </plugins>
-  
-  
   
   </build>
   

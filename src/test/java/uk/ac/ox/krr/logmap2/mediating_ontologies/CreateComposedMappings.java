@@ -17,27 +17,27 @@ import uk.ac.ox.krr.logmap2.io.OutPutFilesManager;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
 public class CreateComposedMappings{
-	private final Set<MappingObjectStr>  s2mMaps;
-	private final Set<MappingObjectStr>  m2tMaps;
+	// private final Set<MappingObjectStr>  s2mMaps;
+	// private final Set<MappingObjectStr>  m2tMaps;
 
 	public CreateComposedMappings() {
-		this.s2mMaps = null;
-		this.m2tMaps = null;
+		// this.s2mMaps = null;
+		// this.m2tMaps = null;
 	}
 	
-	private CreateComposedMappings(Set<MappingObjectStr>  s2mMaps, Set<MappingObjectStr>  m2tMaps ) {
-		this.s2mMaps = s2mMaps;
-		this.m2tMaps = m2tMaps;
-	}
-	
-	
-	public Set<MappingObjectStr> getSource2MediumMappings(){
-		return s2mMaps;
-	}
-	
-	public Set<MappingObjectStr> getMedium2TargetMappings(){
-		return m2tMaps;
-	}
+//	private CreateComposedMappings(Set<MappingObjectStr>  s2mMaps, Set<MappingObjectStr>  m2tMaps ) {
+//		this.s2mMaps = s2mMaps;
+//		this.m2tMaps = m2tMaps;
+//	}
+//	
+//	
+//	public Set<MappingObjectStr> getSource2MediumMappings(){
+//		return s2mMaps;
+//	}
+//	
+//	public Set<MappingObjectStr> getMedium2TargetMappings(){
+//		return m2tMaps;
+//	}
 	
 	
 	/**
@@ -48,21 +48,24 @@ public class CreateComposedMappings{
 	 * @param medium OWLOntology the mediating ontology
 	 * @return CreateCompoSedMappings new instance of CreateComposedMappings
 	 */
-	public CreateComposedMappings triangulateOntologies(OWLOntology source, OWLOntology target, OWLOntology medium) {
+	public Set<MappingObjectStr> triangulateOntologies(OWLOntology source, OWLOntology target, OWLOntology medium) {
 		
 	   System.out.println("Starting the matching task (source, medium)");
 		LogMap2_Matcher sourceMapMedium= new LogMap2_Matcher(source, medium);
 		Set<MappingObjectStr>  s2mMaps = sourceMapMedium.getLogmap2_Mappings();
-		sourceMapMedium.clearIndexStructures();
-		System.out.println("Completing the matching task (source, medium) " +s2mMaps);
+		// sourceMapMedium.clearIndexStructures();
+		sourceMapMedium = null;
+		System.out.println("Completing the matching task (source, medium). Mappipngs count " +s2mMaps.size());
 
 		System.out.println("Starting the matching task ( mo_i, target)");
 		LogMap2_Matcher mediumMapTarget = new LogMap2_Matcher(medium, target);
 		Set<MappingObjectStr>  m2tMaps = mediumMapTarget.getLogmap2_Mappings();
-		mediumMapTarget.clearIndexStructures();
+		// mediumMapTarget.clearIndexStructures();
+		mediumMapTarget = null;
 		System.out.println("Completing the matching task ( medium, target). Mappings count " + m2tMaps.size());
-		
-		return new CreateComposedMappings(s2mMaps, m2tMaps);
+		Set<MappingObjectStr>   composedMappings =  aggregateComposedMapping(s2mMaps, m2tMaps);
+		// return new CreateComposedMappings(s2mMaps, m2tMaps);
+		return composedMappings;
 	}
 	
 	public Set<MappingObjectStr>  aggregateComposedMapping(Set<MappingObjectStr> source2mo, Set<MappingObjectStr> mo2target){
@@ -100,8 +103,8 @@ public class CreateComposedMappings{
 	public static void main(String[] args) {
 		
 		
-		String onto1_iri = "file:/home/valentina/Downloads/anatomy-dataset/human.owl";
-		String onto2_iri = "file:/home/valentina/Downloads/anatomy-dataset/mouse.owl";
+		String onto1_iri = "file:/home/valentina/git-repos/test-data/test_onto_input/human.owl";
+		String onto2_iri = "file:/home/valentina//git-repos/test-data/test_onto_input/mouse.owl";
 		String outPath = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/test-mappings/";
 		// String mo_i_iri = "file:" + "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/MIO.owl";
 		// String parentPath = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/";
@@ -167,10 +170,10 @@ public class CreateComposedMappings{
 
 			
 				CreateComposedMappings mapComposer = new CreateComposedMappings();
-				mapComposer = mapComposer.triangulateOntologies(onto1, onto2, mo_i);
-				Set<MappingObjectStr> s2m = mapComposer.s2mMaps;
-				Set<MappingObjectStr> m2t = mapComposer.m2tMaps;
-				Set<MappingObjectStr>   composedMappings =  mapComposer.aggregateComposedMapping(s2m, m2t);
+				Set<MappingObjectStr>   composedMappings = mapComposer.triangulateOntologies(onto1, onto2, mo_i);
+				// Set<MappingObjectStr> s2m = mapComposer.s2mMaps;
+				// Set<MappingObjectStr> m2t = mapComposer.m2tMaps;
+				// Set<MappingObjectStr>   composedMappings =  mapComposer.aggregateComposedMapping(s2m, m2t);
 				System.out.println("There are " + composedMappings.size() + " composed mappings");
 				// TODO Save these mappings somewhere
 				OutPutFilesManager mapSaver = new OutPutFilesManager();
@@ -178,6 +181,8 @@ public class CreateComposedMappings{
 				mapSaver.createOutFiles(outPath + ontoStr, 5, onto1_iri, onto2_iri);
 				mapSaver.addMappings(composedMappings);
 				mapSaver.closeAndSaveFiles();
+				composedMappings = null;
+				counter+=1;
 			}
 			
 		}catch( Exception e) {

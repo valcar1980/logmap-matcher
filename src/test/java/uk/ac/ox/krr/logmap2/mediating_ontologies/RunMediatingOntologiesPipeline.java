@@ -13,8 +13,8 @@ public class RunMediatingOntologiesPipeline {
 		 * Hard-coded paths for input
 		 */
 
-		String onto1_iri = "file:/home/valentina/Downloads/anatomy-dataset/human.owl";
-		String onto2_iri = "file:/home/valentina/Downloads/anatomy-dataset/mouse.owl";
+		String onto1_iri = "file:/home/valentina/git-repos/test-data/test_onto_input/human.owl";
+		String onto2_iri = "file:/home/valentina//git-repos/test-data/test_onto_input/mouse.owl";
 
 		String parentPath = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/";
 		String filePath = parentPath + "logmap_top10_mediating_ontologies.txt";
