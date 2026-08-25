@@ -1,4 +1,8 @@
-## How to use the mediating ontologies package
+# How to use the mediating ontologies package
+
+## Initial setup
+
+Before you run the programs in this package...
 
 ### Get your input data
 Our default example starts with the human and mouse ontology
@@ -6,13 +10,51 @@ You can download them manually at OAEI
 human.owl
 mouse.owl
 
-### Steps
+### Structure your parent folder
 
-1. RunMediatingOntologies
+Please create the following folder structure prior to running the programs. The name of the two sub-directories and the config file matters.
+
+```
+<parent folder>/
+├── store-mediating-ontologies/
+├── store-composed-mappings/
+└── config.json
+```
+
+### Write your config file
+
+The config file is very simple
+
+```
+{
+  "sourceOntologyFullPath": "/home/valentina/git-repos/test-data/test_onto_input/human.owl",
+  "targetOntologyFullPath": "/home/valentina//git-repos/test-data/test_onto_input/mouse.owl"
+}
+
+```
+
+## Steps
+
+### 1. RunMediatingOntologies
 
 This gets the top 10 mediating ontologies for the source and target ontology
-Change the hard-coded paths to match what you have downloaded
-Add arguments to the Run Configuration for the file -Xms500M -Xmx15G -DentityExpansionLimit=10000000 --add-opens=java.base/java.lang=ALL-UNNAMED
+To run from command line type in terminal (provided you have built two separate targets for logmap and its tests) with the correct full path to the folder you have created earlier.
 
-2. CreateComposedMappings
-(Same setup as before)
+```
+java -Xms500M -Xmx25G -DentityExpansionLimit=10000000 --add-opens=java.base/java.lang=ALL-UNNAMED
+ *     -cp logmap-matcher-4.0-tests.jar:logmap-matcher-4.0.jar 
+ *         uk.ac.ox.krr.logmap2.mediating_ontologies.RunMediatingOntologiesPipeline <parent folder>
+
+```
+
+### 2. CreateComposedMappings
+
+This is a memory-heavy program, we highly recommend to run from terminal. Do keep the system monitor open while you run to check that memory is not filling up. 
+
+
+
+## TODO
+
+* Make naming and structure of directory for storing less constricting.
+* Expand on config file structure and content
+* (About CreateComposedMappings) The code should be written so that it can be resumed when run a second time, so you don't get to redo everything.
