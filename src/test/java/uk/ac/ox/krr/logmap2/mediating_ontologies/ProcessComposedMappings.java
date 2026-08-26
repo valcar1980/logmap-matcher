@@ -1,6 +1,10 @@
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
@@ -33,17 +37,51 @@ public class ProcessComposedMappings{
 		// Load source2target mappings as logmap original mappings
 		String sourceTargetMappingsFile ="/home/valentina/git-repos/test-data/test-argparse/store-source-target/source2target.txt";
 		try {
+			
 			FlatAlignmentReader mappingReader = new FlatAlignmentReader(sourceTargetMappingsFile);
 			Set<MappingObjectStr> mapSource2Target = mappingReader.getMappingObjects();
 			System.out.println("Original set of mappings contains " + mapSource2Target.size() + " mappings");
 			//3. load one mapping file
 			String moMappingsPath = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/test-mappings/";
-			String moComposedMappings = moMappingsPath + "OBA.txt";
-			FlatAlignmentReader mappingReader_i = new FlatAlignmentReader(moComposedMappings);
-			Set<MappingObjectStr> composedMappings_i = mappingReader_i.getMappingObjects();
-			System.out.println("Mediating ontology gave a total of " + composedMappings_i.size() + " mappings");
-			Set<MappingObjectStr> newMappings = mappingSetSubtraction(composedMappings_i, mapSource2Target);
-			System.out.println("Of which new mappings are " + composedMappings_i.size());
+			
+			
+			// Load iteratively all ontologies in the folder
+			File listPath = new File(moMappingsPath);
+			File[] listOnto = listPath.listFiles();
+			String moComposedMappings = null;
+			
+			List<FlatAlignmentReader> readersArray = new ArrayList<FlatAlignmentReader>();
+			Integer txtCounter = 0;
+			for( File f: listOnto) {
+				boolean is_txt = f.getName().endsWith(".txt");
+				if(is_txt==false) {
+					continue;
+				}else {
+					
+					System.out.println("Filtering new mappings for " + f.getName());
+					moComposedMappings = moMappingsPath + f.getName();
+					readersArray.add(new FlatAlignmentReader(moComposedMappings));
+					
+					Set<MappingObjectStr> composedMappings = readersArray.get(txtCounter).getMappingObjects();
+					System.out.println("Mediating ontology gave a total of " + composedMappings.size() + " mappings");
+					Set<MappingObjectStr> newMappings = mappingSetSubtraction(composedMappings, mapSource2Target);
+					System.out.println("Of which new mappings are " + newMappings.size());
+					
+					//update iterator
+					txtCounter++;
+				}
+				
+			}
+			/*
+			 * String moComposedMappings = moMappingsPath + "OBA.txt"; FlatAlignmentReader
+			 * mappingReader_i = new FlatAlignmentReader(moComposedMappings);
+			 * Set<MappingObjectStr> composedMappings_i =
+			 * mappingReader_i.getMappingObjects();
+			 * System.out.println("Mediating ontology gave a total of " +
+			 * composedMappings_i.size() + " mappings"); Set<MappingObjectStr> newMappings =
+			 * mappingSetSubtraction(composedMappings_i, mapSource2Target);
+			 * System.out.println("Of which new mappings are " + newMappings.size());
+			 */
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
