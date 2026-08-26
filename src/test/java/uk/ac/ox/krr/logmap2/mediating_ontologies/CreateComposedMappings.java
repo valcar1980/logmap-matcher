@@ -175,7 +175,7 @@ public class CreateComposedMappings{
 				// Set<MappingObjectStr> m2t = mapComposer.m2tMaps;
 				// Set<MappingObjectStr>   composedMappings =  mapComposer.aggregateComposedMapping(s2m, m2t);
 				System.out.println("There are " + composedMappings.size() + " composed mappings");
-				// TODO Save these mappings somewhere
+				// Save these mappings somewhere
 				OutPutFilesManager mapSaver = new OutPutFilesManager();
 				// 5 = AllFlatFormats
 				mapSaver.createOutFiles(outPath + ontoStr, 5, onto1_iri, onto2_iri);

@@ -57,4 +57,5 @@ This is a memory-heavy program, we highly recommend to run from terminal. Do kee
 
 * Make naming and structure of directory for storing less constricting.
 * Expand on config file structure and content
-* (About CreateComposedMappings) The code should be written so that it can be resumed when run a second time, so you don't get to redo everything.
+* (About CreateComposedMappings) The code should be written so that it can be resumed when run a second time, so you don't get to redo everything.It also need a good cleanup.
+* Reduce the number of classes, I don't think I need that many

@@ -2,12 +2,15 @@ package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
+
 import org.semanticweb.owlapi.model.OWLOntology;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
+import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
 /**
  * Takes a parent folder with a config JSON file, reads the input ontologies and finds the mediating ontologies in Bioportal.
@@ -95,16 +98,19 @@ public class RunMediatingOntologiesPipeline {
 
 		String storeOntoPath = moRunner.parentPath + "/store-mediating-ontologies/";
 		String filePath = moRunner.parentPath + "logmap_top10_mediating_ontologies.txt";
+		// TODO create name from ontologies labels
+		String s2tFilePath = moRunner.parentPath + "store-source-target/source2target";
 //
 		System.out.println("Starting Mediating Ontologies Pipeline");
 		CreateMappingsBetweenTwoOntologies onto_mapper = new CreateMappingsBetweenTwoOntologies();
-		LogMap2_Matcher onto_mappings = onto_mapper.createMappings(onto1_iri, onto2_iri);
-
+		LogMap2_Matcher onto_matcher= onto_mapper.createMappings(onto1_iri, onto2_iri);
+		Set<MappingObjectStr>  onto_mappings = onto_matcher.getLogmap2_Mappings();
+		onto_mapper.saveOntologyMappings(true, onto_mappings, s2tFilePath, onto1_iri, onto2_iri);
 //		/*
 //		 * Identify suitable mediating ontologies and store their label onto a list
 //		 */
 		FetchMediatingOntologies mo_fetcher = new FetchMediatingOntologies();
-		List<String> moList = mo_fetcher.extractMediatingOntologyList(onto_mappings);
+		List<String> moList = mo_fetcher.extractMediatingOntologyList(onto_matcher);
 		mo_fetcher.saveListMediatingOntolgies(true, moList, filePath);
 
 		/*
