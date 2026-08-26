@@ -33,6 +33,20 @@ The config file is very simple
 
 ```
 
+## Set up for command line
+You will need to run from terminal the following to create the packages you need
+
+```
+<your-machine>:~/git-repos/logmap-matcher$ mvn -e clean install
+```
+
+Among all the others, this will give you two jar files in the target folder 
+
+* `logmap-matcher-4.0.jar`
+* `logmap-matcher-4.0-tests.jar`
+
+This is what you will need to run from command line.
+
 ## Steps
 
 ### 1. RunMediatingOntologies
@@ -42,8 +56,8 @@ To run from command line type in terminal (provided you have built two separate 
 
 ```
 java -Xms500M -Xmx25G -DentityExpansionLimit=10000000 --add-opens=java.base/java.lang=ALL-UNNAMED
- *     -cp logmap-matcher-4.0-tests.jar:logmap-matcher-4.0.jar 
- *         uk.ac.ox.krr.logmap2.mediating_ontologies.RunMediatingOntologiesPipeline <parent folder>
+      -cp logmap-matcher-4.0-tests.jar:logmap-matcher-4.0.jar 
+          uk.ac.ox.krr.logmap2.mediating_ontologies.RunMediatingOntologiesPipeline <parent folder>
 
 ```
 
@@ -51,7 +65,15 @@ java -Xms500M -Xmx25G -DentityExpansionLimit=10000000 --add-opens=java.base/java
 
 This is a memory-heavy program, we highly recommend to run from terminal. Do keep the system monitor open while you run to check that memory is not filling up. 
 
+```
+java -Xms500M -Xmx25G -DentityExpansionLimit=10000000 --add-opens=java.base/java.lang=ALL-UNNAMED
+     -cp logmap-matcher-4.0-tests.jar:logmap-matcher-4.0.jar 
+          uk.ac.ox.krr.logmap2.mediating_ontologies.CreateComposedMappings <parent folder>
 
+```
+### 3. ProcessComposedMappings
+
+Where we take the mappings obtained via each mediating ontology and we subtract those that logmap had already found when aligning the source and target.
 
 ## TODO
 

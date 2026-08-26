@@ -85,17 +85,19 @@ public class StoreMediatingOntologies {
 		
 	}
 	
-	public boolean checkOntoPath(String ontoStr, String basePath) {
+	public boolean checkOntoPath(String ontoStr, String basePath, String fileExtension) {
 		// TODO Auto-generated method stub
-		String ontoPath = basePath + ontoStr + ".owl";
+		String ontoPath = basePath + ontoStr + fileExtension;
 		File ontoFile = new File(ontoPath);
 		
 		if (ontoFile.exists() && ontoFile.isFile()) {
+			//System.out.println(ontoFile.getName());
 			return true;
 		}else {
 		return false;
 		}
 	}
+		
 	
 	public static void main(String[] args) {
 		String basePath ="/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/";
@@ -117,7 +119,7 @@ public class StoreMediatingOntologies {
 
 				// TODO if file exists, skip
 				
-				boolean isOntoThere = moStorer.checkOntoPath(ontoStr, basePath);
+				boolean isOntoThere = moStorer.checkOntoPath(ontoStr, basePath, ".owl");
 				
 				if (isOntoThere == true) {
 				

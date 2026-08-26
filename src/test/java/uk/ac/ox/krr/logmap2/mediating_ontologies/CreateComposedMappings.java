@@ -101,11 +101,22 @@ public class CreateComposedMappings{
 	
 	
 	public static void main(String[] args) {
+		RunMediatingOntologiesPipeline configReader = new RunMediatingOntologiesPipeline();
+		configReader.getParentFolder(args);
+		configReader.readConfigJSON();
 		
+
+		String parentPath = configReader.parentPath;
+		String onto1_iri = "file:" + configReader.sourceOntoPath;
+		String onto2_iri = "file:" + configReader.targetOntoPath;
 		
-		String onto1_iri = "file:/home/valentina/git-repos/test-data/test_onto_input/human.owl";
-		String onto2_iri = "file:/home/valentina//git-repos/test-data/test_onto_input/mouse.owl";
-		String outPath = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/test-mappings/";
+		//String onto1_iri = "file:/home/valentina/git-repos/test-data/test_onto_input/human.owl";
+		//String onto2_iri = "file:/home/valentina//git-repos/test-data/test_onto_input/mouse.owl";
+		String basePath = parentPath + "store-mediating-ontologies/";
+		String outPath = parentPath + "test-mappings/";
+		String listFile = parentPath + "/logmap_top10_mediating_ontologies.txt";
+
+		
 		// String mo_i_iri = "file:" + "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/MIO.owl";
 		// String parentPath = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/";
 		// String filePath = parentPath + "logmap_top10_mediating_ontologies.txt";
@@ -122,7 +133,7 @@ public class CreateComposedMappings{
 		onto_manager.setOntologyLoaderConfiguration(config);
 		
 		
-		String basePath ="/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/";
+		
 //		String ontoLabel = "MIO";
 			StoreMediatingOntologies moStorer = new StoreMediatingOntologies();
 //		OWLOntology moDownload = moStorer.CallBioPortal(ontoLabel, basePath);
@@ -132,7 +143,6 @@ public class CreateComposedMappings{
 		/*
 		 * Loop through the list of ontologies and load them one by one to then perform composed mapping	
 		 */
-		String listFile = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/logmap_top10_mediating_ontologies.txt";
 		try {
 			
 			// Load source and target
@@ -144,7 +154,7 @@ public class CreateComposedMappings{
 			// Load mediating ontologies
 			List<String> moList = moStorer.getOntologyListFromFile(listFile);
 			int countOnto = moList.size();
-			System.out.println("There are" + countOnto + "mediating ontologies in the list");
+			System.out.println("There are " + countOnto + "mediating ontologies in the list");
 			
 			int counter = 1;
 			for (String ontoStr: moList) {
@@ -152,16 +162,16 @@ public class CreateComposedMappings{
 				System.out.println("Fetching ontology No.  " + counter + " label:  " +  ontoStr);
 
 				// TODO if file exists, skip
-				
-				boolean isOntoThere = moStorer.checkOntoPath(ontoStr, basePath);
-				
-				if (isOntoThere == true) {
+				System.out.println(basePath + ontoStr + ".owl");
+				boolean isOntoThere = moStorer.checkOntoPath(ontoStr, basePath, ".owl");
+				boolean isMappingThere = moStorer.checkOntoPath(ontoStr, outPath,".txt");
+				if (isOntoThere == true && isMappingThere== false) {
 					String ontoPath = "file:" + basePath + ontoStr + ".owl";
 					System.out.println("Loading the mediating ontology " + ontoPath);
 					mo_i = onto_manager.loadOntology(IRI.create(ontoPath));
 					
 				}else {
-					System.out.println("Ontology " +  ontoStr + "not found, skipping");
+					System.out.println("Ontology " +  ontoStr + " not found, skipping");
 					
 					continue;
 				}

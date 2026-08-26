@@ -127,7 +127,7 @@ public class RunMediatingOntologiesPipeline {
 				System.out.println("Fetching ontology No.  " + counter + " label:  " + ontoStr);
 
 
-				boolean isOntoThere = moStorer.checkOntoPath(ontoStr, storeOntoPath);
+				boolean isOntoThere = moStorer.checkOntoPath(ontoStr, storeOntoPath, ".owl");
 
 				if (isOntoThere == true) {
 

@@ -3,8 +3,10 @@ package uk.ac.ox.krr.logmap2.mediating_ontologies;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
@@ -33,6 +35,15 @@ public class ProcessComposedMappings{
 	}
 	public static void main(String[] args) {
 		//1. read from config file the parentPath
+		RunMediatingOntologiesPipeline configReader = new RunMediatingOntologiesPipeline();
+		configReader.getParentFolder(args);
+		configReader.readConfigJSON();
+		
+
+		String parentPath = configReader.parentPath;
+		String onto1_iri = "file:" + configReader.sourceOntoPath;
+		String onto2_iri = "file:" + configReader.targetOntoPath;
+		
 		//2. check that there is a folder with composed mappings
 		// Load source2target mappings as logmap original mappings
 		String sourceTargetMappingsFile ="/home/valentina/git-repos/test-data/test-argparse/store-source-target/source2target.txt";
@@ -42,14 +53,15 @@ public class ProcessComposedMappings{
 			Set<MappingObjectStr> mapSource2Target = mappingReader.getMappingObjects();
 			System.out.println("Original set of mappings contains " + mapSource2Target.size() + " mappings");
 			//3. load one mapping file
-			String moMappingsPath = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/test-mappings/";
-			
+			String moMappingsPath = parentPath +"store-composed-mappings/";
+			String newMappingsPath = parentPath + "store-unique-mappings/";
+			// To save new mappings later in the loop
+			CreateMappingsBetweenTwoOntologies onto_mapper = new CreateMappingsBetweenTwoOntologies();
 			
 			// Load iteratively all ontologies in the folder
 			File listPath = new File(moMappingsPath);
 			File[] listOnto = listPath.listFiles();
-			String moComposedMappings = null;
-			
+			String moComposedMappingsPath = null;
 			List<FlatAlignmentReader> readersArray = new ArrayList<FlatAlignmentReader>();
 			Integer txtCounter = 0;
 			for( File f: listOnto) {
@@ -59,14 +71,16 @@ public class ProcessComposedMappings{
 				}else {
 					
 					System.out.println("Filtering new mappings for " + f.getName());
-					moComposedMappings = moMappingsPath + f.getName();
-					readersArray.add(new FlatAlignmentReader(moComposedMappings));
+					moComposedMappingsPath = moMappingsPath + f.getName();
+					readersArray.add(new FlatAlignmentReader(moComposedMappingsPath));
 					
-					Set<MappingObjectStr> composedMappings = readersArray.get(txtCounter).getMappingObjects();
-					System.out.println("Mediating ontology gave a total of " + composedMappings.size() + " mappings");
-					Set<MappingObjectStr> newMappings = mappingSetSubtraction(composedMappings, mapSource2Target);
+					Set<MappingObjectStr> moComposedMappings = readersArray.get(txtCounter).getMappingObjects();
+					System.out.println("Mediating ontology gave a total of " + moComposedMappings.size() + " mappings");
+					Set<MappingObjectStr> newMappings = mappingSetSubtraction(moComposedMappings, mapSource2Target);
 					System.out.println("Of which new mappings are " + newMappings.size());
-					
+					String newMapPath = newMappingsPath + f.getName().substring(0, f.getName().lastIndexOf('.'));
+					onto_mapper.saveOntologyMappings(true, newMappings, newMapPath, onto1_iri, onto2_iri);
+
 					//update iterator
 					txtCounter++;
 				}
