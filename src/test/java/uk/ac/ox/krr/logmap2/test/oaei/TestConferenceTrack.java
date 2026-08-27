@@ -36,6 +36,10 @@ public class TestConferenceTrack extends TestOAEITrackEnhanced{
 		//or
 		//setMappingsLocalOracle(base_path_output_mappings);
 		
+		if (filenames==null) {
+			System.err.println("Check the given paths.");
+			return;
+		}
 		
 		for(int i=0; i<filenames.length; i++){
 			
