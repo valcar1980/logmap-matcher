@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
+import uk.ac.ox.krr.logmap2.Parameters;
 import uk.ac.ox.krr.logmap2.bioportal.MediatingOntologyExtractor;
 
 public class FetchMediatingOntologies {
@@ -14,6 +15,13 @@ public class FetchMediatingOntologies {
 	public FetchMediatingOntologies() {
 	}
 
+	
+	/**
+	 * Given Logmap mappings between two ontologies, it uses the provided representative labels 
+	 * to identify the name of the mediating ontologies.
+	 * @param onto_mappings
+	 * @return List<String> of ontology labels from the mediating ontologies found
+	 */
 	public List<String> extractMediatingOntologyList(LogMap2_Matcher onto_mappings) {
 		
 		Set<String> representative_labels = onto_mappings.getRepresentativeLabelsForMappings();
@@ -23,6 +31,7 @@ public class FetchMediatingOntologies {
 		List<String> mediating_ontologies = mo_extract.getSelectedMediatingOntologies();
 		return mediating_ontologies;
 	}
+	
 	
 	public void printMediatingOntologies(List<String> selectedMediatingOntologies) {
 
@@ -59,23 +68,27 @@ public class FetchMediatingOntologies {
 
 	public static void main(String[] args) {
 		// The parent folder should already exist - don't forget the last "/" !
+		// TODO use config file instead?
+		int max_mediating_ontologies = 12;
+		// TODO change the number of mediating ontologies
+		//Parameters.setMaxMediatingOntologies(12);
 		
 		String parentPath = "/home/valentina/git-repos/test-data/test_onto_output/test-mediating-store/";
-		String filePath = parentPath + "logmap_top10_mediating_ontologies.txt";
+		String filePath = parentPath + "logmap_top12_mediating_ontologies.txt";
 		System.out.println("Fetching");
 
 		// TODO Load mappings from file
 		
 		System.out.println("Prepare for mediating ontologies");
 		//Test mappings created
-		String onto1_iri = "file:/home/valentina/Downloads/anatomy-dataset/human.owl"; 
-		String onto2_iri = "file:/home/valentina/Downloads/anatomy-dataset/mouse.owl";
+		String onto1_iri = "file:/home/valentina/git-repos/test-data/test_onto_input/human.owl"; 
+		String onto2_iri = "file:/home/valentina/git-repos/test-data/test_onto_input/mouse.owl";
 		CreateMappingsBetweenTwoOntologies myLogMap = new CreateMappingsBetweenTwoOntologies();
-		LogMap2_Matcher onto_mappings = myLogMap.createMappings(onto1_iri, onto2_iri);
+		LogMap2_Matcher onto_mappings = myLogMap.createMappings(onto1_iri, onto2_iri, max_mediating_ontologies);
 		
 		long startTime = System.nanoTime();
 		FetchMediatingOntologies mo_fetcher = new FetchMediatingOntologies();
-		System.out.println("Extracting mediating ontologies");
+		System.out.println("Extracting " + Parameters.max_mediating_ontologies + " mediating ontologies");
 		List<String> mediating_ontologies = mo_fetcher.extractMediatingOntologyList(onto_mappings);
 		long endTime = System.nanoTime();
 		System.out.println(

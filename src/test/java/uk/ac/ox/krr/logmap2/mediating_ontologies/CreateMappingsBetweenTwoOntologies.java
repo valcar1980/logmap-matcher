@@ -21,7 +21,7 @@ public class CreateMappingsBetweenTwoOntologies {
 		
 	}
 
-	public LogMap2_Matcher createMappings(String onto1_iri, String onto2_iri) {
+	public LogMap2_Matcher createMappings(String onto1_iri, String onto2_iri, int max_mediating_ontologies) {
 
 		try {
 
@@ -39,7 +39,7 @@ public class CreateMappingsBetweenTwoOntologies {
 			OWLOntology onto2 = onto_manager.loadOntology(IRI.create(onto2_iri));
 
 			System.out.println("Starting the matching task using LogMap2_Matcher");
-			LogMap2_Matcher logmap2 = new LogMap2_Matcher(onto1, onto2);
+			LogMap2_Matcher logmap2 = new LogMap2_Matcher(onto1, onto2, max_mediating_ontologies);
 			// Optionally LogMap also accepts the IRI strings as input
 			// LogMap2_Matcher logmap2 = new LogMap2_Matcher(onto1_iri, onto2_iri);
 			System.out.println("Completing the matching task using LogMap2_Matcher");
@@ -115,7 +115,7 @@ public class CreateMappingsBetweenTwoOntologies {
 		CreateMappingsBetweenTwoOntologies myLogMap = new CreateMappingsBetweenTwoOntologies();
 		System.out.println("Mapping");
 		long startTime = System.nanoTime();
-		LogMap2_Matcher logmapMatcher = myLogMap.createMappings(onto1_iri, onto2_iri);
+		LogMap2_Matcher logmapMatcher = myLogMap.createMappings(onto1_iri, onto2_iri, 12);
 		Set<MappingObjectStr>  onto_mappings = logmapMatcher.getLogmap2_Mappings();
 		// printOntologyMappings(onto_mappings);
 		// Set<String> representative_labels = onto_mappings.getRepresentativeLabelsForMappings();

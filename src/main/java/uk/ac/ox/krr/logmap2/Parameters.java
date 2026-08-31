@@ -462,6 +462,9 @@ public class Parameters {
 		min_size_overlapping = size;
 	}
 	
+	public static void setMaxMediatingOntologies(int number) {
+		max_mediating_ontologies = number;
+	}
 	
 	public static void readParameters(){
 		readParameters("");

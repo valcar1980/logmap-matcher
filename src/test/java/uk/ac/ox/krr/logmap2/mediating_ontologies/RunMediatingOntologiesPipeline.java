@@ -98,9 +98,9 @@ public class RunMediatingOntologiesPipeline {
 		String onto2_iri = "file:" + moRunner.targetOntoPath;
 		String s2tFilePath = moRunner.parentPath + "store-source-target/source2target";
 		String storeOntoPath = moRunner.parentPath + "/store-mediating-ontologies/";
-		
+		int max_mediating_ontologies =12; // overrides default parameter 10
 		// Conditional input
-		String filePath = moRunner.parentPath + "logmap_top10_mediating_ontologies.txt";
+		String filePath = moRunner.parentPath + "logmap_top12_mediating_ontologies.txt";
 		boolean txtListExists = false;
 		File listFile = new File(filePath);
 		
@@ -116,7 +116,7 @@ public class RunMediatingOntologiesPipeline {
 		if (txtListExists == false) {
 		System.out.println("Starting Mediating Ontologies Pipeline");
 		CreateMappingsBetweenTwoOntologies onto_mapper = new CreateMappingsBetweenTwoOntologies();
-		LogMap2_Matcher onto_matcher= onto_mapper.createMappings(onto1_iri, onto2_iri);
+		LogMap2_Matcher onto_matcher= onto_mapper.createMappings(onto1_iri, onto2_iri, max_mediating_ontologies);
 		Set<MappingObjectStr>  onto_mappings = onto_matcher.getLogmap2_Mappings();
 		onto_mapper.saveOntologyMappings(true, onto_mappings, s2tFilePath, onto1_iri, onto2_iri);
 		/*
@@ -142,11 +142,16 @@ public class RunMediatingOntologiesPipeline {
 		System.out.println("There are" + countOnto + "mediating ontologies in the list");
 		
 		
-			int counter = 0;
+			int all_counter = 0; // all counts, including failed downloads
+			int success_counter =0; // existing ontologies or successfully downloaded
 			for (String ontoStr : moList) {
-				counter += 1;
-
-				System.out.println("Fetching ontology No.  " + counter + " label:  " + ontoStr);
+				all_counter += 1;
+				
+				if (success_counter ==10) {
+					System.out.println("Stopping downloads, we have reached 10 ontologies");
+					break;
+				}
+				System.out.println("Fetching ontology No.  " + all_counter + " from list,  label:  " + ontoStr);
 
 
 				boolean isOntoThere = moStorer.checkOntoPath(ontoStr, storeOntoPath, ".owl");
@@ -154,6 +159,7 @@ public class RunMediatingOntologiesPipeline {
 				if (isOntoThere == true) {
 
 					System.out.println("Ontology file already exists at location, skipping");
+					success_counter++;
 					continue;
 				}
 				else {
@@ -164,7 +170,7 @@ public class RunMediatingOntologiesPipeline {
 					
 					moStorer.saveOntology(ontoStr, moDownload, storeOntoPath);
 					System.out.println("Stored ontology " + ontoStr);
-					
+					success_counter++;
 					}
 					catch (Exception e) 
 					{
