@@ -161,7 +161,7 @@ public class CreateComposedMappings{
 				OWLOntology mo_i = null;
 				System.out.println("Fetching ontology No.  " + counter + " label:  " +  ontoStr);
 
-				// TODO if file exists, skip
+				// if the mediating ontology is missing or the mapping file exists, skip
 				System.out.println(basePath + ontoStr + ".owl");
 				boolean isOntoThere = moStorer.checkOntoPath(ontoStr, basePath, ".owl");
 				boolean isMappingThere = moStorer.checkOntoPath(ontoStr, outPath,".txt");
@@ -169,37 +169,37 @@ public class CreateComposedMappings{
 					String ontoPath = "file:" + basePath + ontoStr + ".owl";
 					System.out.println("Loading the mediating ontology " + ontoPath);
 					mo_i = onto_manager.loadOntology(IRI.create(ontoPath));
+					CreateComposedMappings mapComposer = new CreateComposedMappings();
+					Set<MappingObjectStr>   composedMappings = mapComposer.triangulateOntologies(onto1, onto2, mo_i);
+					System.out.println("There are " + composedMappings.size() + " composed mappings");
+					// Save these mappings somewhere
+					OutPutFilesManager mapSaver = new OutPutFilesManager();
+					// 5 = AllFlatFormats
+					mapSaver.createOutFiles(outPath + ontoStr, 5, onto1_iri, onto2_iri);
+					mapSaver.addMappings(composedMappings);
+					mapSaver.closeAndSaveFiles();
+					composedMappings = null;
+					counter+=1;
 					
 				}else {
+					if(isOntoThere == false) {
 					System.out.println("Ontology " +  ontoStr + " not found, skipping");
+					}
+					if(isMappingThere == true) {
+					System.out.println("Mapping file already existed for " +  ontoStr + "skipping");
+
+					}
 					
 					continue;
 				}
-				// Create composed mapping for mediating ontology mo_i
-				
 
-			
-				CreateComposedMappings mapComposer = new CreateComposedMappings();
-				Set<MappingObjectStr>   composedMappings = mapComposer.triangulateOntologies(onto1, onto2, mo_i);
-				// Set<MappingObjectStr> s2m = mapComposer.s2mMaps;
-				// Set<MappingObjectStr> m2t = mapComposer.m2tMaps;
-				// Set<MappingObjectStr>   composedMappings =  mapComposer.aggregateComposedMapping(s2m, m2t);
-				System.out.println("There are " + composedMappings.size() + " composed mappings");
-				// Save these mappings somewhere
-				OutPutFilesManager mapSaver = new OutPutFilesManager();
-				// 5 = AllFlatFormats
-				mapSaver.createOutFiles(outPath + ontoStr, 5, onto1_iri, onto2_iri);
-				mapSaver.addMappings(composedMappings);
-				mapSaver.closeAndSaveFiles();
-				composedMappings = null;
-				counter+=1;
 			}
 			
 		}catch( Exception e) {
 			e.printStackTrace();
 		}
 		
-		System.out.println("All complete");
+		System.out.println("All storing of composed mappings is now complete");
 		/*
 		 * 2. Run logmap to get mappings
 		 * 3. Compose mappings

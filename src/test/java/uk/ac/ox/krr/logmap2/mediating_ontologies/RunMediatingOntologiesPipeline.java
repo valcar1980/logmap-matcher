@@ -1,6 +1,7 @@
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -92,37 +93,58 @@ public class RunMediatingOntologiesPipeline {
 		moRunner.readConfigJSON();
 		
 
-
+		// Expected input
 		String onto1_iri = "file:" + moRunner.sourceOntoPath;
 		String onto2_iri = "file:" + moRunner.targetOntoPath;
-
-		String storeOntoPath = moRunner.parentPath + "/store-mediating-ontologies/";
-		String filePath = moRunner.parentPath + "logmap_top10_mediating_ontologies.txt";
-		// TODO create name from ontologies labels
 		String s2tFilePath = moRunner.parentPath + "store-source-target/source2target";
-//
+		String storeOntoPath = moRunner.parentPath + "/store-mediating-ontologies/";
+		
+		// Conditional input
+		String filePath = moRunner.parentPath + "logmap_top10_mediating_ontologies.txt";
+		boolean txtListExists = false;
+		File listFile = new File(filePath);
+		
+		if (listFile.exists() && listFile.isFile()) txtListExists = true;
+		
+		//Initialisations
+		StoreMediatingOntologies moStorer = new StoreMediatingOntologies();
+		List<String> moList = null;
+		
+		
+		// If mediating ontologies files exist, then skip and read the ontologies that need downloading from the file
+		
+		if (txtListExists == false) {
 		System.out.println("Starting Mediating Ontologies Pipeline");
 		CreateMappingsBetweenTwoOntologies onto_mapper = new CreateMappingsBetweenTwoOntologies();
 		LogMap2_Matcher onto_matcher= onto_mapper.createMappings(onto1_iri, onto2_iri);
 		Set<MappingObjectStr>  onto_mappings = onto_matcher.getLogmap2_Mappings();
 		onto_mapper.saveOntologyMappings(true, onto_mappings, s2tFilePath, onto1_iri, onto2_iri);
-//		/*
-//		 * Identify suitable mediating ontologies and store their label onto a list
-//		 */
+		/*
+		 * Identify suitable mediating ontologies and store their label onto a list
+		 */
 		FetchMediatingOntologies mo_fetcher = new FetchMediatingOntologies();
-		List<String> moList = mo_fetcher.extractMediatingOntologyList(onto_matcher);
+		moList = mo_fetcher.extractMediatingOntologyList(onto_matcher);
 		mo_fetcher.saveListMediatingOntolgies(true, moList, filePath);
-
+		}
+		else {
+			System.out.println("Mediating ontologies list already exists at " + filePath + " \n Skipping to fetching ontologies from list");
+			try {
+				moList = moStorer.getOntologyListFromFile(filePath);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		/*
 		 * Store all ontologies from list of mediating ontologies
 		 */
-		StoreMediatingOntologies moStorer = new StoreMediatingOntologies();
 		int countOnto = moList.size();
 		System.out.println("There are" + countOnto + "mediating ontologies in the list");
 		
-		try {
-			int counter = 1;
+		
+			int counter = 0;
 			for (String ontoStr : moList) {
+				counter += 1;
 
 				System.out.println("Fetching ontology No.  " + counter + " label:  " + ontoStr);
 
@@ -134,23 +156,32 @@ public class RunMediatingOntologiesPipeline {
 					System.out.println("Ontology file already exists at location, skipping");
 					continue;
 				}
-				OWLOntology moDownload = moStorer.CallBioPortal(ontoStr, storeOntoPath);
-				System.out.println("Fetched ontology " + ontoStr);
+				else {
+					try {
+					OWLOntology moDownload = moStorer.CallBioPortal(ontoStr, storeOntoPath);
+					System.out.println("Fetched ontology " + ontoStr);
+	
+					
+					moStorer.saveOntology(ontoStr, moDownload, storeOntoPath);
+					System.out.println("Stored ontology " + ontoStr);
+					
+					}
+					catch (Exception e) 
+					{
+						System.out.println("Coudln't fetch " + ontoStr + "; skipping");
+						continue;
+						//e.printStackTrace();
+					}
 
-				
-				moStorer.saveOntology(ontoStr, moDownload, storeOntoPath);
-				System.out.println("Stored ontology " + ontoStr);
-
-				counter += 1;
+				}
+					
+				// we update the counter regardless of successful download
 			}
-		}
-		catch (Exception e) 
-		{
-			e.printStackTrace();
-		}
+		
+		
 		System.out.println("All Ontologies are stored in " + storeOntoPath);
+		}
 	}
-}
 		
 		
 		
