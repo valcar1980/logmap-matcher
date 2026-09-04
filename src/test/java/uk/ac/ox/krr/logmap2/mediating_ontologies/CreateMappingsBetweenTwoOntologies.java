@@ -11,6 +11,7 @@ import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
+import uk.ac.ox.krr.logmap2.io.OutPutFilesManager;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
 public class CreateMappingsBetweenTwoOntologies {
@@ -75,31 +76,53 @@ public class CreateMappingsBetweenTwoOntologies {
 		}
 	}
 	
-	public void saveOntologyMappings(boolean shouldSave, LogMap2_Matcher logmap2, String parent_path) {
-		// TODO
+	public void saveOntologyMappings(boolean shouldSave, Set<MappingObjectStr> Mappings, String mappingPath,
+			String onto1_iri, String onto2_iri ) {
+		
+		if(shouldSave==true) {
+		OutPutFilesManager mapSaver = new OutPutFilesManager();
+		// 5 = AllFlatFormats
+		try {
+			mapSaver.createOutFiles(mappingPath, 5, onto1_iri, onto2_iri);
+			mapSaver.addMappings(Mappings);
+			mapSaver.closeAndSaveFiles();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		}
+		else {
+			System.out.println("Warning: you chose not to save the mappings between source and target.");
+		}
 	}
 
 	public static void main(String[] args) {
 		
 		// The parent folder should already exist - don't forget the last "/" !
-		String parent_folder = "/home/valentina/git-repos/test-data/test_onto_output/test_mapping_store/";
+		String parent_folder = "/home/valentina/git-repos/test-data/test_onto_output/test-mapping-store/";
 		System.out.println("Parent folder to store mappings" + parent_folder);
 		
 		System.out.println("Example ontologies for mapping");
-		String onto1_iri = "file:/home/valentina/MyData/onto_bioportal/CVRG_EPOntology.owl";
-		String onto2_iri = "file:/home/valentina/MyData/onto_bioportal/MIO.owl";
+		// TODO read from config and add the "file" bit
+		// String sourcePath = "/home/valentina/MyData/onto_bioportal/CVRG_EPOntology.owl";
+		//String targetPath = "/home/valentina/MyData/onto_bioportal/MIO.owl";
+		String onto1_iri = "file:/home/valentina/git-repos/test-data/test_onto_input/human.owl";
+		String onto2_iri = "file:/home/valentina/git-repos/test-data/test_onto_input/mouse.owl";
+		//TODO check that the files exist before matching!
 		System.out.println(onto1_iri + "\n" + onto2_iri);
 		
 		CreateMappingsBetweenTwoOntologies myLogMap = new CreateMappingsBetweenTwoOntologies();
 		System.out.println("Mapping");
 		long startTime = System.nanoTime();
-		LogMap2_Matcher onto_mappings = myLogMap.createMappings(onto1_iri, onto2_iri);
+		LogMap2_Matcher logmapMatcher = myLogMap.createMappings(onto1_iri, onto2_iri);
+		Set<MappingObjectStr>  onto_mappings = logmapMatcher.getLogmap2_Mappings();
 		// printOntologyMappings(onto_mappings);
 		// Set<String> representative_labels = onto_mappings.getRepresentativeLabelsForMappings();
 		long endTime = System.nanoTime();
 		System.out.println(
 				"Map matching task completed.\t" + Math.floor((endTime - startTime) / 10e9) + " seconds elapsed");
-		myLogMap.saveOntologyMappings(true, onto_mappings, parent_folder);
+		myLogMap.saveOntologyMappings(true, onto_mappings, parent_folder+"testmap", onto1_iri,onto2_iri);
 		
 
 	}
