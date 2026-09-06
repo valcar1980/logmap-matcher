@@ -118,7 +118,7 @@ public class RunMediatingOntologiesPipeline {
 		CreateMappingsBetweenTwoOntologies onto_mapper = new CreateMappingsBetweenTwoOntologies();
 		LogMap2_Matcher onto_matcher= onto_mapper.createMappings(onto1_iri, onto2_iri, max_mediating_ontologies);
 		Set<MappingObjectStr>  onto_mappings = onto_matcher.getLogmap2_Mappings();
-		onto_mapper.saveOntologyMappings(true, onto_mappings, s2tFilePath, onto1_iri, onto2_iri);
+		onto_mapper.saveOntologyMappings(onto_mappings, s2tFilePath, onto1_iri, onto2_iri);
 		/*
 		 * Identify suitable mediating ontologies and store their label onto a list
 		 */

@@ -10,3 +10,5 @@ and the download fails, we log the error received in  `bioportal_failing_ontolog
 	at uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl.makeLoadImportRequest(OWLOntologyManagerImpl.java:1605)
 
 ```
+//TODO
+Some lists of "bad" ontologies are spread across the code, for example, see `MediatingOntologyExtractor`. We should try and download them again.

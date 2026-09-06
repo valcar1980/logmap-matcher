@@ -79,7 +79,7 @@ public class ProcessComposedMappings{
 					Set<MappingObjectStr> newMappings = mappingSetSubtraction(moComposedMappings, mapSource2Target);
 					System.out.println("Of which new mappings are " + newMappings.size());
 					String newMapPath = newMappingsPath + f.getName().substring(0, f.getName().lastIndexOf('.'));
-					onto_mapper.saveOntologyMappings(true, newMappings, newMapPath, onto1_iri, onto2_iri);
+					onto_mapper.saveOntologyMappings(newMappings, newMapPath, onto1_iri, onto2_iri);
 
 					//update iterator
 					txtCounter++;

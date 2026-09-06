@@ -20,6 +20,39 @@ public class CreateMappingsBetweenTwoOntologies {
 	public CreateMappingsBetweenTwoOntologies() {
 		
 	}
+	
+	public Set<MappingObjectStr> createMappings(String onto1_iri, String onto2_iri){
+		OWLOntologyManager onto_manager = OWLManager.createOWLOntologyManager();
+		// In case an import is broken
+		OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
+		// Important to reassign value, see https://github.com/owlcs/owlapi/issues/503
+		config = config.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
+		onto_manager.setOntologyLoaderConfiguration(config);
+		OWLOntology onto1 = null;
+		OWLOntology onto2 = null;
+		try {
+		System.out.println("Loading the first ontology " + onto1_iri);
+		onto1 = onto_manager.loadOntology(IRI.create(onto1_iri));
+		}catch (Exception e) {
+			System.out.println("Failed to load " + onto1_iri);
+			return null;
+		}
+		try {
+		System.out.println("Loading the second ontology " + onto2_iri);
+		onto2 = onto_manager.loadOntology(IRI.create(onto2_iri));
+		}catch ( Exception e) {
+			System.out.println("Failed to load " + onto2_iri);
+			return null;
+		}
+		System.out.println("Starting the matching task using LogMap2_Matcher");
+		LogMap2_Matcher logmap2 = new LogMap2_Matcher(onto1, onto2);
+		Set<MappingObjectStr> mappings = logmap2.getLogmap2_Mappings();
+		System.out.println("Mapping completed, mappings count = " + mappings.size());
+		
+		
+		return mappings;
+	}
+	
 
 	public LogMap2_Matcher createMappings(String onto1_iri, String onto2_iri, int max_mediating_ontologies) {
 
@@ -76,26 +109,39 @@ public class CreateMappingsBetweenTwoOntologies {
 		}
 	}
 	
-	public void saveOntologyMappings(boolean shouldSave, Set<MappingObjectStr> Mappings, String mappingPath,
+
+
+	
+	/**
+	 * 
+	 * @param Mappings
+	 * @param mappingPath String full path + name of the file, the function only adds the file extension
+	 * @param onto1_iri
+	 * @param onto2_iri
+	 * @return
+	 */
+	
+	public String saveOntologyMappings(Set<MappingObjectStr> Mappings, String mappingPath,
 			String onto1_iri, String onto2_iri ) {
 		
-		if(shouldSave==true) {
 		OutPutFilesManager mapSaver = new OutPutFilesManager();
+		String path2file = null;
 		// 5 = AllFlatFormats
 		try {
 			mapSaver.createOutFiles(mappingPath, 5, onto1_iri, onto2_iri);
 			mapSaver.addMappings(Mappings);
 			mapSaver.closeAndSaveFiles();
+			path2file = mappingPath;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.out.println("Failed to save mappings, returning null");
 		}
-
-		}
-		else {
-			System.out.println("Warning: you chose not to save the mappings between source and target.");
-		}
+		return path2file;
 	}
+
+
+	
 
 	public static void main(String[] args) {
 		
@@ -122,7 +168,7 @@ public class CreateMappingsBetweenTwoOntologies {
 		long endTime = System.nanoTime();
 		System.out.println(
 				"Map matching task completed.\t" + Math.floor((endTime - startTime) / 10e9) + " seconds elapsed");
-		myLogMap.saveOntologyMappings(true, onto_mappings, parent_folder+"testmap", onto1_iri,onto2_iri);
+		myLogMap.saveOntologyMappings(onto_mappings, parent_folder+"testmap", onto1_iri,onto2_iri);
 		
 
 	}

@@ -50,12 +50,12 @@ This is what you will need to run from command line.
 ## Steps
 
 ### 1. RunMediatingOntologies
-
+//TODO change number of ontologies
 This gets the top 10 mediating ontologies for the source and target ontology
 To run from command line type in terminal (provided you have built two separate targets for logmap and its tests) with the correct full path to the folder you have created earlier.
 
 ```
-java -Xms500M -Xmx25G -DentityExpansionLimit=10000000 --add-opens=java.base/java.lang=ALL-UNNAMED
+java -Xms500M -Xmx12G -DentityExpansionLimit=10000000 --add-opens=java.base/java.lang=ALL-UNNAMED
       -cp logmap-matcher-4.0-tests.jar:logmap-matcher-4.0.jar 
           uk.ac.ox.krr.logmap2.mediating_ontologies.RunMediatingOntologiesPipeline <parent folder>
 
@@ -66,7 +66,7 @@ java -Xms500M -Xmx25G -DentityExpansionLimit=10000000 --add-opens=java.base/java
 This is a memory-heavy program, we highly recommend to run from terminal. Do keep the system monitor open while you run to check that memory is not filling up. 
 
 ```
-java -Xms500M -Xmx25G -DentityExpansionLimit=10000000 --add-opens=java.base/java.lang=ALL-UNNAMED
+java -Xms500M -Xmx12G -DentityExpansionLimit=10000000 --add-opens=java.base/java.lang=ALL-UNNAMED
      -cp logmap-matcher-4.0-tests.jar:logmap-matcher-4.0.jar 
           uk.ac.ox.krr.logmap2.mediating_ontologies.CreateComposedMappings <parent folder>
 
