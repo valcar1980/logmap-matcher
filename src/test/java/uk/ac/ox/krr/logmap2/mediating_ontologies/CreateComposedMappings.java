@@ -54,40 +54,15 @@ public class CreateComposedMappings{
 	}
 
 
-	/**
-	 * Set sub-folders inside parentPath for further processing. In this method, the mediating ontologies are expected
-	 * to be inside the parent folder.
-	 * @param parentPath
-	 */
-	
-	//TODO most of these paths are set in Utils - refactor!
-	public void setAllPathsFromParent(String parentPath) {
+
 		
-		this.parentPath = parentPath;
-
-		this.basePath = parentPath + "store-mediating-ontologies/";
-		
-		this.sourceToTargetPath = parentPath + "store-source-target/";
-			
-		this.midPath = parentPath + "store-simple-mappings/";
-
-		this.outPath = parentPath + "store-composed-mappings/";
-
-		this.listFile = parentPath + "/logmap_top12_mediating_ontologies.txt";
-	}
-	
 	public void setAllPathsFromParent(String parentPath, String localOntoRepo) {
 		
 		this.parentPath = parentPath;
-
 		this.basePath = localOntoRepo;
-		
 		this.sourceToTargetPath = parentPath + "store-source-target/";
-			
 		this.midPath = parentPath + "store-simple-mappings/";
-
 		this.outPath = parentPath + "store-composed-mappings/";
-
 		this.listFile = parentPath + "/logmap_top12_mediating_ontologies.txt";
 	}
 	
@@ -198,10 +173,7 @@ public class CreateComposedMappings{
 	 * Calls functionality from OutPutFilesManager to save a set of mappings to file. 
 	 * The parameter 5 = all flat formats.
 	 * @param composedMappings Set<MappingObjectStr> set of mappings
-	 * @param outPath String 	Parent folder where the file will be  created
-	 * @param ontoStr String	The short label representing the ontology in Bioportal
-	 * @param onto1_iri String	file:<path to ontology> for source ontology
-	 * @param onto2_iri String	file:<path to ontology> for target ontology
+	 * @param ontoName String	the label of the ontology, as used to store them, for example UBERON for UBERON.owl
 	 */
 	public void saveComposedMappings(Set<MappingObjectStr>  composedMappings, String ontoName){
 		// Save these mappings somewhere
@@ -219,39 +191,15 @@ public class CreateComposedMappings{
 		
 	}
 	
-	public static void main(String[] args) {
-		
-		// Check that the folders are create properly from parent
-		String parentPath = "/home/valentina/git-repos/test-data/test-folder-creation/";
-		CreateComposedMappings compMapper = new CreateComposedMappings();
-		compMapper.setAllPathsFromParent(parentPath);
-		//this.basePath = parentPath + "store-mediating-ontologies/";
-		//createSubDirectory(this.basePath);
-		System.out.println(compMapper.basePath);
-		//assert it exists
-		
-		//this.midPath = parentPath + "store-simple-mappings/";
-		//createSubDirectory(this.midPath);
-		System.out.println(compMapper.midPath);
-		//assert it exists
-		
-		//this.outPath = parentPath + "store-composed-mappings/";
-		//createSubDirectory(this.outPath);
-		System.out.println(compMapper.outPath);
 
-		//this.listFile = parentPath + "/logmap_top12_mediating_ontologies.txt";
-		
-		//System.out.println()
-		
-	}
 	
-	public static void smain(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException {
 		MediatingOntologiesUtils configReader = new MediatingOntologiesUtils();
 		configReader.getParentFolder(args);
 		configReader.readConfigJSON();
 		
 		CreateComposedMappings compMapper = new CreateComposedMappings();
-		compMapper.setAllPathsFromParent(configReader.parentPath);
+		compMapper.setAllPathsFromParent(configReader.parentPath, configReader.localOntoRepoPath);
 		compMapper.setOnto1_IRI(configReader.sourceOntoPath);
 		compMapper.setOnto2_IRI(configReader.targetOntoPath);
 		String o1Name = compMapper.getOntologyNameFromFile(compMapper.onto1_iri);
@@ -281,7 +229,6 @@ public class CreateComposedMappings{
 		for (String ontoStr: moList) {
 			
 			counter++;
-			OWLOntology mo_i = null;
 			System.out.println("Fetching ontology No.  " + counter + " label:  " +  ontoStr);
 			// if the mediating ontology is missing or the mapping file exists, skip
 			System.out.println(compMapper.basePath + ontoStr + ".owl");

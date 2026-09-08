@@ -1,12 +1,17 @@
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
+import uk.ac.ox.krr.logmap2.bioportal.MediatingOntologyExtractor;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
 public class MediatingOntologiesUtils {
@@ -89,6 +94,48 @@ public class MediatingOntologiesUtils {
 	}
 	}
 	
+	
+	/**
+	 * Given Logmap mappings between two ontologies, it uses the provided representative labels 
+	 * to identify the name of the mediating ontologies.
+	 * @param onto_mappings
+	 * @return List<String> of ontology labels from the mediating ontologies found
+	 */
+	public List<String> extractMediatingOntologyList(LogMap2_Matcher onto_mappings) {
+		
+		Set<String> representative_labels = onto_mappings.getRepresentativeLabelsForMappings();
+	
+		MediatingOntologyExtractor mo_extract = new MediatingOntologyExtractor(representative_labels);
+	
+		List<String> mediating_ontologies = mo_extract.getSelectedMediatingOntologies();
+		return mediating_ontologies;
+	}
+	
+	
+	
+
+	
+	
+	public void saveListMediatingOntolgies(boolean saveList, List<String> selectedMediatingOntologies, 
+			String filePath){
+		if (selectedMediatingOntologies.size() < 1) {
+			System.out.println("No mediating ontologies found");
+
+		} else {
+			try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) 
+	        {
+	            for (int i = 0; i < selectedMediatingOntologies.size(); i++) {
+	                writer.write(selectedMediatingOntologies.get(i));
+	                writer.newLine(); 
+	            }
+	            System.out.println("ArrayList written to file successfully.");
+	        } catch (IOException e) {
+	            e.printStackTrace();
+			
+			}
+		}
+	}
+	
 	/*
 	 * Create folder structures
 	 */
@@ -145,6 +192,18 @@ public class MediatingOntologiesUtils {
 			// MappingObjectStr.DATAPROPERTIES or MappingObjectStr.INSTANCES
 			System.out.println("Mapping type \t" + mapping.getTypeOfMapping());
 
+		}
+	}
+	
+	public void printMediatingOntologies(List<String> selectedMediatingOntologies) {
+
+		if (selectedMediatingOntologies.size() < 1) {
+			System.out.println("No mediating ontologies found");
+
+		} else {
+			for (int i = 0; i < selectedMediatingOntologies.size(); i++) {
+				System.out.println(selectedMediatingOntologies.get(i));
+			}
 		}
 	}
 	

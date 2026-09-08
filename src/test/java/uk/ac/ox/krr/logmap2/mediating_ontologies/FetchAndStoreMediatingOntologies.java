@@ -74,7 +74,7 @@ public class FetchAndStoreMediatingOntologies {
 		/*
 		 * Identify suitable mediating ontologies and store their label onto a list
 		 */
-		FetchMediatingOntologies mo_fetcher = new FetchMediatingOntologies();
+		MediatingOntologiesUtils mo_fetcher = new MediatingOntologiesUtils();
 		moList = mo_fetcher.extractMediatingOntologyList(onto_matcher);
 		mo_fetcher.saveListMediatingOntolgies(true, moList, filePath);
 		}
