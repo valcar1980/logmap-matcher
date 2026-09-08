@@ -26,81 +26,33 @@ import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
  * For more details, refer to the README in the package.
  * @author valcar1980
  */
-public class RunMediatingOntologiesPipeline {
-	public String parentPath;
-	public String sourceOntoPath;
-	public String targetOntoPath;
-	
-	public void getParentFolder(String args[]) {
-		try {
-			parentPath = args[0];
-			File f = new File(parentPath);
-			if (f.exists() && f.isDirectory()) {
-				System.out.println("Parent folder exists at " + parentPath);
-			} else {
-				System.out.println("Parent folder doesn't exist at " + parentPath);
-				return;
-			}
-		} catch (Exception e) {
-			System.out.println("Parent folder not provided in the args");
-			e.printStackTrace();
-		
-		}
-	}
-	
-	public void readConfigJSON() {
-		String jsonPath = parentPath + "config.json";
-		File jsonConfig = new File(jsonPath);
-		try {
-		if (jsonConfig.exists()==false) {
-			System.out.println("Couldn't find config JSON in parent folder " + jsonPath);
-			return;
-		} else {
-			
-			System.out.println("Found config JSON in parent folder " + jsonPath);
-			ObjectMapper objectMapper = new ObjectMapper();
-	        JsonNode jsonNode = objectMapper.readTree(jsonConfig);
-	        
-	        sourceOntoPath = jsonNode.get("sourceOntologyFullPath").asText();
-	        targetOntoPath = jsonNode.get("targetOntologyFullPath").asText();
-	        
-	        if (new File(sourceOntoPath).exists() && new File(targetOntoPath).exists()) {
-	        System.out.println("Found files for the ontologies provided as source " + sourceOntoPath 
-	        		+ "\n and as target " +targetOntoPath);
-	        }
-	        else {
-	        	System.out.println("Check your configs, either source or target onto are missing!");
-	        }
-		}
-	} catch (Exception e) {
-		System.out.println("Check you program arguments!");
-		e.printStackTrace();
-		System.out.println(jsonPath);
-	}
-	}
+public class FetchAndStoreMediatingOntologies {
+
 	
 	
 	public static void main(String[] args) {
 
-		/*
-		 * Hard-coded paths for input
-		 */
-		
-		// String parentPath = "/home/valentina/git-repos/test-data/test-argparse/";
-		
-		RunMediatingOntologiesPipeline moRunner = new RunMediatingOntologiesPipeline();
-		moRunner.getParentFolder(args);
-		moRunner.readConfigJSON();
+		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
+		moUtils.getParentFolder(args);
+		moUtils.readConfigJSON();
 		
 
 		// Expected input
-		String onto1_iri = "file:" + moRunner.sourceOntoPath;
-		String onto2_iri = "file:" + moRunner.targetOntoPath;
-		String s2tFilePath = moRunner.parentPath + "store-source-target/source2target";
-		String storeOntoPath = moRunner.parentPath + "/store-mediating-ontologies/";
-		int max_mediating_ontologies =12; // overrides default parameter 10
+		String onto1_iri = "file:" + moUtils.sourceOntoPath;
+		String onto2_iri = "file:" + moUtils.targetOntoPath;
+		String s2tFilePath = moUtils.parentPath + "store-source-target/source2target";
+		String storeOntoPath = moUtils.localOntoRepoPath;
+		
+		//Set up output
+		String filePath = null;
+		if (moUtils.overrideMOnum == true) {
 		// Conditional input
-		String filePath = moRunner.parentPath + "logmap_top12_mediating_ontologies.txt";
+			filePath = moUtils.parentPath + "logmap_top" + Integer.toString(moUtils.maxMONum) + "_mediating_ontologies.txt";
+		}else {
+			//TODO
+			System.out.println("Should read deault paramater and provide max number of mediating ontologies here.");
+			filePath = moUtils.parentPath + "logmap_top10_mediating_ontologies.txt";
+		}
 		boolean txtListExists = false;
 		File listFile = new File(filePath);
 		
@@ -116,7 +68,7 @@ public class RunMediatingOntologiesPipeline {
 		if (txtListExists == false) {
 		System.out.println("Starting Mediating Ontologies Pipeline");
 		CreateMappingsBetweenTwoOntologies onto_mapper = new CreateMappingsBetweenTwoOntologies();
-		LogMap2_Matcher onto_matcher= onto_mapper.createMappings(onto1_iri, onto2_iri, max_mediating_ontologies);
+		LogMap2_Matcher onto_matcher= onto_mapper.createMappings(onto1_iri, onto2_iri, moUtils.maxMONum);
 		Set<MappingObjectStr>  onto_mappings = onto_matcher.getLogmap2_Mappings();
 		onto_mapper.saveOntologyMappings(onto_mappings, s2tFilePath, onto1_iri, onto2_iri);
 		/*

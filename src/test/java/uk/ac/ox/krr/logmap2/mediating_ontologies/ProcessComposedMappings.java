@@ -35,7 +35,7 @@ public class ProcessComposedMappings{
 	}
 	public static void main(String[] args) {
 		//1. read from config file the parentPath
-		RunMediatingOntologiesPipeline configReader = new RunMediatingOntologiesPipeline();
+		MediatingOntologiesUtils configReader = new MediatingOntologiesUtils();
 		configReader.getParentFolder(args);
 		configReader.readConfigJSON();
 		

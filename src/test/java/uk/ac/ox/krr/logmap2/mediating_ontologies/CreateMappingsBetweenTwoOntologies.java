@@ -91,23 +91,7 @@ public class CreateMappingsBetweenTwoOntologies {
 		return null;
 	}
 	
-	public static void printOntologyMappings(LogMap2_Matcher onto_mapping) {
-		Set<MappingObjectStr> logmap2_mappings = onto_mapping.getLogmap2_Mappings();
-		for (MappingObjectStr mapping : logmap2_mappings) {
-			System.out.println("\t Mapping: ");
-			System.out.println("Entity from ontology 1 \t" + mapping.getIRIStrEnt1());
-			System.out.println("Entity from ontology 2 \t" + mapping.getIRIStrEnt2());
-			System.out.println("Confidence in the mapping \t" + mapping.getConfidence());
 
-			// MappingObjectStr.EQ or MappingObjectStr.SUB or MappingObjectStr.SUP
-			System.out.println("Mapping direction \t" + mapping.getMappingDirection()); // Utilities.EQ;
-
-			// MappingObjectStr.CLASSES or MappingObjectStr.OBJECTPROPERTIES or
-			// MappingObjectStr.DATAPROPERTIES or MappingObjectStr.INSTANCES
-			System.out.println("Mapping type \t" + mapping.getTypeOfMapping());
-
-		}
-	}
 	
 
 

@@ -1,4 +1,5 @@
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,6 +35,7 @@ public class CreateComposedMappings{
 	String onto1_iri;
 	String onto2_iri;
 	String parentPath;
+	String sourceToTargetPath;
 	String basePath;
 	String midPath;
 	String outPath;
@@ -50,15 +52,47 @@ public class CreateComposedMappings{
 	public void setOnto2_IRI(String ontoIRI) {
 		this.onto2_iri = "file:" + ontoIRI;
 	}
+
+
+	/**
+	 * Set sub-folders inside parentPath for further processing. In this method, the mediating ontologies are expected
+	 * to be inside the parent folder.
+	 * @param parentPath
+	 */
+	
+	//TODO most of these paths are set in Utils - refactor!
 	public void setAllPathsFromParent(String parentPath) {
+		
 		this.parentPath = parentPath;
+
 		this.basePath = parentPath + "store-mediating-ontologies/";
+		
+		this.sourceToTargetPath = parentPath + "store-source-target/";
+			
 		this.midPath = parentPath + "store-simple-mappings/";
+
 		this.outPath = parentPath + "store-composed-mappings/";
+
+		this.listFile = parentPath + "/logmap_top12_mediating_ontologies.txt";
+	}
+	
+	public void setAllPathsFromParent(String parentPath, String localOntoRepo) {
+		
+		this.parentPath = parentPath;
+
+		this.basePath = localOntoRepo;
+		
+		this.sourceToTargetPath = parentPath + "store-source-target/";
+			
+		this.midPath = parentPath + "store-simple-mappings/";
+
+		this.outPath = parentPath + "store-composed-mappings/";
+
 		this.listFile = parentPath + "/logmap_top12_mediating_ontologies.txt";
 	}
 	
 	
+
 	public String getOntologyNameFromFile(String pathString){
 
         Path path = Paths.get(pathString);
@@ -185,9 +219,34 @@ public class CreateComposedMappings{
 		
 	}
 	
+	public static void main(String[] args) {
+		
+		// Check that the folders are create properly from parent
+		String parentPath = "/home/valentina/git-repos/test-data/test-folder-creation/";
+		CreateComposedMappings compMapper = new CreateComposedMappings();
+		compMapper.setAllPathsFromParent(parentPath);
+		//this.basePath = parentPath + "store-mediating-ontologies/";
+		//createSubDirectory(this.basePath);
+		System.out.println(compMapper.basePath);
+		//assert it exists
+		
+		//this.midPath = parentPath + "store-simple-mappings/";
+		//createSubDirectory(this.midPath);
+		System.out.println(compMapper.midPath);
+		//assert it exists
+		
+		//this.outPath = parentPath + "store-composed-mappings/";
+		//createSubDirectory(this.outPath);
+		System.out.println(compMapper.outPath);
+
+		//this.listFile = parentPath + "/logmap_top12_mediating_ontologies.txt";
+		
+		//System.out.println()
+		
+	}
 	
-	public static void main(String[] args) throws IOException {
-		RunMediatingOntologiesPipeline configReader = new RunMediatingOntologiesPipeline();
+	public static void smain(String[] args) throws IOException {
+		MediatingOntologiesUtils configReader = new MediatingOntologiesUtils();
 		configReader.getParentFolder(args);
 		configReader.readConfigJSON();
 		
