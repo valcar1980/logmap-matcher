@@ -93,3 +93,7 @@ Where we take the mappings obtained via each mediating ontology and we subtract 
 ```
 java -cp logmap-matcher-4.0-tests.jar:logmap-matcher-4.0.jar 
           uk.ac.ox.krr.logmap2.mediating_ontologies.ProcessComposedMappings <parent folder>
+          
+```
+
+This step creates a new sub-directory `store-unique-mappings` which will contain all the txt/tsv files with the new unique mappings produced via mediating ontologies. These are the result of subtracting the set of Logmap direct mappings between source and target, from the set of all mappings obtained using Logmap via the top (available) 10 mediating ontologies.
