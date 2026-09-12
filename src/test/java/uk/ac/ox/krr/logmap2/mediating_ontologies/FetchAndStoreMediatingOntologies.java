@@ -35,6 +35,7 @@ public class FetchAndStoreMediatingOntologies {
 		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
 		moUtils.getParentFolder(args);
 		moUtils.readConfigJSON();
+		moUtils.createSubDirectoriesFromParent();
 		
 
 		// Expected input

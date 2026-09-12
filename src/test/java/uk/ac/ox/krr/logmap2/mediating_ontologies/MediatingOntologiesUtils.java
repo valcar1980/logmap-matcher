@@ -150,7 +150,7 @@ public class MediatingOntologiesUtils {
 	
 	private void createSubDirectory(String path) {
 		File dir = new File(path);
-		if (!dir.exists()) dir.mkdirs();
+		if (!dir.exists()) dir.mkdir();
 		
 	}
 	public void createSubDirectoriesFromParent() {
