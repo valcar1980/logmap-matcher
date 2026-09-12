@@ -13,97 +13,107 @@ import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 import uk.ac.ox.krr.logmap2.oaei.reader.FlatAlignmentReader;
 
 public class ProcessComposedMappings{
+	
+	public ProcessComposedMappings(){}
+	
+	
 	/**
-	 * Performs set subtraction between sets of mappings. Works for any two sets of mappings. However,
-	 * in this class, we care about removing the mappings originally provided by logmap
-	 * from the set of mappings obtained via the mediating ontology.
-	 * @param mediatingComposedMappings
-	 * @param logmapMappings
+	 * Performs set subtraction A\B between sets of mappings. Works for any two sets of mappings A and B. 
+	 * @param AMappings
+	 * @param BMappings
 	 * @return mapSubtracted;
 	 */
-	public static Set<MappingObjectStr> mappingSetSubtraction(Set<MappingObjectStr> mediatingComposedMappings, Set<MappingObjectStr> logmapMappings){
+	public Set<MappingObjectStr> mappingSetSubtraction(Set<MappingObjectStr> AMappings, Set<MappingObjectStr> BMappings){
 		Set<MappingObjectStr> mapSubtracted = new HashSet<MappingObjectStr>();
 		
-		for(MappingObjectStr mapping: mediatingComposedMappings) {
+		for(MappingObjectStr mapping: AMappings) {
 			
-			if(logmapMappings.contains(mapping)==false) {
+			if(BMappings.contains(mapping)==false) {
 				mapSubtracted.add(mapping);
 			}
 		}
 		
 		return mapSubtracted;
 	}
-	public static void main(String[] args) {
-		//1. read from config file the parentPath
-		MediatingOntologiesUtils configReader = new MediatingOntologiesUtils();
-		configReader.getParentFolder(args);
-		configReader.readConfigJSON();
+	
+	public HashMap<String, FlatAlignmentReader> makeMappingReadersFromDirectory(String mappingsDirectory){
 		
+		HashMap<String,FlatAlignmentReader> readersArray = new HashMap<String, FlatAlignmentReader>();
+		File listPath = new File(mappingsDirectory);
+		File[] listOnto = listPath.listFiles();
+		String moComposedMappingsPath = null;
+		
+		for( File f: listOnto) {
+			boolean is_txt = f.getName().endsWith(".txt");
+			if(is_txt==false) {
+				System.out.println("Not a txt " + f);
+				continue;
+			}else {
+				
+				System.out.println("Filtering new mappings for " + f.getName());
+				moComposedMappingsPath = mappingsDirectory + f.getName();
+				FlatAlignmentReader newreader = null;
+				String ontoLabel = f.getName().substring(0, f.getName().lastIndexOf('.'));
+				try {
+					
+					newreader = new FlatAlignmentReader(moComposedMappingsPath);
+				}
+				catch(Exception e){
+					System.out.println("Failed to read composed mapping for " + f);
+				}
+				
+				readersArray.put(ontoLabel, newreader);
+				
 
-		String parentPath = configReader.parentPath;
-		String onto1_iri = "file:" + configReader.sourceOntoPath;
-		String onto2_iri = "file:" + configReader.targetOntoPath;
+			}
+			
+		}
 		
-		//2. check that there is a folder with composed mappings
-		// Load source2target mappings as logmap original mappings
-		String sourceTargetMappingsFile ="/home/valentina/git-repos/test-data/test-argparse/store-source-target/source2target.txt";
+		
+		return readersArray;
+	}
+	
+	public static void main(String[] args) {
+
+		
+		ProcessComposedMappings moProcess = new ProcessComposedMappings();
+		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
+		moUtils.getParentFolder(args);
+		moUtils.readConfigJSON();
+		moUtils.createSubDirectoriesFromParent(); //if the subdir already exists it doesn't create it nor overwrite it
+		
+		String onto1_iri = "file:" + moUtils.sourceOntoPath;
+		String onto2_iri = "file:" + moUtils.targetOntoPath;
+
+		String moMappingsPath = moUtils.composedMappingsPath;
+		String newMappingsPath = moUtils.newUniqueMappingsPath;
+		String sourceTargetMappingsFile =moUtils.sourceToTargetPath + "source2target.txt";
+		System.out.println("Location " + sourceTargetMappingsFile);
 		try {
 			
 			FlatAlignmentReader mappingReader = new FlatAlignmentReader(sourceTargetMappingsFile);
 			Set<MappingObjectStr> mapSource2Target = mappingReader.getMappingObjects();
 			System.out.println("Original set of mappings contains " + mapSource2Target.size() + " mappings");
-			//3. load one mapping file
-			String moMappingsPath = parentPath +"store-composed-mappings/";
-			String newMappingsPath = parentPath + "store-unique-mappings/";
-			// To save new mappings later in the loop
-			CreateMappingsBetweenTwoOntologies onto_mapper = new CreateMappingsBetweenTwoOntologies();
-			
-			// Load iteratively all ontologies in the folder
-			File listPath = new File(moMappingsPath);
-			File[] listOnto = listPath.listFiles();
-			String moComposedMappingsPath = null;
-			List<FlatAlignmentReader> readersArray = new ArrayList<FlatAlignmentReader>();
-			Integer txtCounter = 0;
-			for( File f: listOnto) {
-				boolean is_txt = f.getName().endsWith(".txt");
-				if(is_txt==false) {
-					continue;
-				}else {
-					
-					System.out.println("Filtering new mappings for " + f.getName());
-					moComposedMappingsPath = moMappingsPath + f.getName();
-					readersArray.add(new FlatAlignmentReader(moComposedMappingsPath));
-					
-					Set<MappingObjectStr> moComposedMappings = readersArray.get(txtCounter).getMappingObjects();
-					System.out.println("Mediating ontology gave a total of " + moComposedMappings.size() + " mappings");
-					Set<MappingObjectStr> newMappings = mappingSetSubtraction(moComposedMappings, mapSource2Target);
-					System.out.println("Of which new mappings are " + newMappings.size());
-					String newMapPath = newMappingsPath + f.getName().substring(0, f.getName().lastIndexOf('.'));
-					onto_mapper.saveOntologyMappings(newMappings, newMapPath, onto1_iri, onto2_iri);
 
-					//update iterator
-					txtCounter++;
-				}
+
+			HashMap<String,FlatAlignmentReader> readersArray = moProcess.makeMappingReadersFromDirectory(moMappingsPath);
+			for( String ontoLabel: readersArray.keySet()) {
 				
-			}
-			/*
-			 * String moComposedMappings = moMappingsPath + "OBA.txt"; FlatAlignmentReader
-			 * mappingReader_i = new FlatAlignmentReader(moComposedMappings);
-			 * Set<MappingObjectStr> composedMappings_i =
-			 * mappingReader_i.getMappingObjects();
-			 * System.out.println("Mediating ontology gave a total of " +
-			 * composedMappings_i.size() + " mappings"); Set<MappingObjectStr> newMappings =
-			 * mappingSetSubtraction(composedMappings_i, mapSource2Target);
-			 * System.out.println("Of which new mappings are " + newMappings.size());
-			 */
+					Set<MappingObjectStr> moComposedMappings = readersArray.get(ontoLabel).getMappingObjects();
+					System.out.println("Mediating ontology gave a total of " + moComposedMappings.size() + " mappings");
+					Set<MappingObjectStr> newMappings = moProcess.mappingSetSubtraction(moComposedMappings, mapSource2Target);
+					System.out.println("Of which new mappings are " + newMappings.size());
+					String newMapPath = newMappingsPath + ontoLabel;
+					moUtils.saveOntologyMappings(newMappings, newMapPath, onto1_iri, onto2_iri);
 
+				}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//4. subtract the mappings that were already found by Logmap (source,target)
-
 	}
-	
-	
 }
+				
+
+		
+
+	

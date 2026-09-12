@@ -30,6 +30,7 @@ Please  be aware that, once you have a parent folder for the tasks, the system w
 ├── store-source-target/
 ├── store-simple-mappings/
 ├── store-composed-mappings/
+├── store-unique-mappings/
 └── config.json
 ```
 In store-source-target the program will store the direct mappings obtained by logmap when matching the source and target ontology. 
@@ -87,11 +88,8 @@ java -Xms500M -Xmx12G -DentityExpansionLimit=10000000 --add-opens=java.base/java
 ```
 ### 3. ProcessComposedMappings
 
-Where we take the mappings obtained via each mediating ontology and we subtract those that logmap had already found when aligning the source and target.
+Where we take the mappings obtained via each mediating ontology and we subtract those that logmap had already found when aligning the source and target. No need to specify settings for logmap as before, this is a pure post-processing program. It is also quite lightweight and it can be safely run from within IDE.
 
-## TODO
-
-* Make naming and structure of directory for storing less constricting.
-* Expand on config file structure and content
-* (About CreateComposedMappings) The code should be written so that it can be resumed when run a second time, so you don't get to redo everything.It also need a good cleanup.
-* Reduce the number of classes, I don't think I need that many
+```
+java -cp logmap-matcher-4.0-tests.jar:logmap-matcher-4.0.jar 
+          uk.ac.ox.krr.logmap2.mediating_ontologies.ProcessComposedMappings <parent folder>

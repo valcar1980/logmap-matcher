@@ -41,5 +41,11 @@ public class MediatingOntologiesUnitTest {
 		
 	}
 	*/
+	@Test
+	public void testMappingSetsSubtraction() {
+		//TODO create two test sets of mappings and subtract bigger \ smaller. 
+		// TODO same but with smaller \ bigger
+		// TODO empty sets
+	}
 	
 }

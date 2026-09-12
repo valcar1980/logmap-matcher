@@ -95,7 +95,7 @@ public class CreateMappingsBetweenTwoOntologies {
 	
 
 
-	
+// TODO remove method - now in MOUtils	
 	/**
 	 * 
 	 * @param Mappings

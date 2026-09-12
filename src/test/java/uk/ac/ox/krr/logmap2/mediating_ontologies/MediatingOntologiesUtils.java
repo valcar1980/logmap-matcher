@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
 import uk.ac.ox.krr.logmap2.bioportal.MediatingOntologyExtractor;
+import uk.ac.ox.krr.logmap2.io.OutPutFilesManager;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
 public class MediatingOntologiesUtils {
@@ -22,6 +23,7 @@ public class MediatingOntologiesUtils {
 	public String sourceToTargetPath;
 	public String simpleMappingsPath;
 	public String composedMappingsPath;
+	public String newUniqueMappingsPath;
 	public Boolean overrideMOnum;
 	public Integer maxMONum;
 	
@@ -163,6 +165,11 @@ public class MediatingOntologiesUtils {
 
 		this.composedMappingsPath = parentPath + "store-composed-mappings/";
 		createSubDirectory(this.composedMappingsPath);
+		
+		this.newUniqueMappingsPath = parentPath + "store-unique-mappings/";
+		createSubDirectory(this.newUniqueMappingsPath);
+		
+
 
 	}
 	
@@ -170,7 +177,33 @@ public class MediatingOntologiesUtils {
 	 * Save to file
 	 */
 	
+	/**
+	 * 
+	 * @param Mappings
+	 * @param mappingPath String full path + name of the file, the function only adds the file extension
+	 * @param onto1_iri
+	 * @param onto2_iri
+	 * @return
+	 */
 	
+	public String saveOntologyMappings(Set<MappingObjectStr> Mappings, String mappingPath,
+			String onto1_iri, String onto2_iri ) {
+		
+		OutPutFilesManager mapSaver = new OutPutFilesManager();
+		String path2file = null;
+		// 5 = AllFlatFormats
+		try {
+			mapSaver.createOutFiles(mappingPath, 5, onto1_iri, onto2_iri);
+			mapSaver.addMappings(Mappings);
+			mapSaver.closeAndSaveFiles();
+			path2file = mappingPath;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+			System.out.println("Failed to save mappings, returning null");
+		}
+		return path2file;
+	}
 	
 	
 	/*
