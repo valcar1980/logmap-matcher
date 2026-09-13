@@ -102,18 +102,40 @@ public class ProcessComposedMappings{
 	return dataRow;
 	}
 	
+	public void addHeaderToCSV(Writer writer, String eol) {
+		Integer noColumns = this.availableStatistics.size();
+		try {
+			  for (Integer i= 0; i < noColumns-1; i++) {
+				  String item = this.availableStatistics.get(i);
+			    writer.append(item)
+			          .append(',');
+			  }
+			  String lastItem = this.availableStatistics.get(noColumns -1);
+			  writer.append(lastItem);
+			  writer.append(eol);
+			} catch (IOException ex) {
+			  ex.printStackTrace(System.err);
+			}
+	}
 	
-	public void addRowToCSV(Writer writer, String eol, HashMap<String,String> dataRow) {
-		//TODO check that the items in the dataRow match the class list of available Stats
-	try {
-		  for (String item : this.availableStatistics) {
-		    writer.append(dataRow.get(item))
-		          .append(',');
-		          //.append(eol);
-		  }
-		  writer.append(eol);
+	public void addRowToCSV(Writer writer, String eol, HashMap<String, String> dataRow) throws Exception {
+		// Check that the items in the dataRow match the class list of available Stats
+
+		Integer noColumns = this.availableStatistics.size();
+		if (dataRow.size() != noColumns) {
+			throw new Exception("dataRow does not match csv header length");
+		}
+		try {
+			for (Integer i= 0; i < noColumns-1; i++)  {
+				String item = this.availableStatistics.get(i); // hashmap key
+				writer.append(dataRow.get(item)).append(','); //hashmap value
+				// .append(eol);
+			}
+			String lastItem = this.availableStatistics.get(noColumns -1);
+			writer.append(dataRow.get(lastItem)); //hashmap value
+			writer.append(eol);
 		} catch (IOException ex) {
-		  ex.printStackTrace(System.err);
+			ex.printStackTrace(System.err);
 		}
 	}
 	
@@ -146,7 +168,8 @@ public class ProcessComposedMappings{
 			Writer writer = new FileWriter(file, true);
 			//Reader reader = new FileReader(file);
 			String eol = System.getProperty("line.separator");
-			System.out.println("EOL: " + eol + "is here");
+			//System.out.println("EOL: " + eol + "is here");
+			moProcess.addHeaderToCSV(writer, eol);
 
 			HashMap<String,FlatAlignmentReader> readersArray = moProcess.makeMappingReadersFromDirectory(moMappingsPath);
 			for( String ontoLabel: readersArray.keySet()) {
