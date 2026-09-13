@@ -7,12 +7,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 import uk.ac.ox.krr.logmap2.oaei.reader.FlatAlignmentReader;
@@ -163,7 +165,10 @@ public class ProcessComposedMappings{
 			Set<MappingObjectStr> mapSource2Target = mappingReader.getMappingObjects();
 			System.out.println("Original set of mappings contains " + mapSource2Target.size() + " mappings");
 			
-			File file = new File(moUtils.parentPath + "stats.csv");
+			// Save stats to file
+			String timestamp = Instant.now().toString();
+
+			File file = new File(moUtils.parentPath + "Statistics-" + timestamp +".csv");
 			// Create a File and append if it already exists.
 			Writer writer = new FileWriter(file, true);
 			//Reader reader = new FileReader(file);
