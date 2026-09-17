@@ -9,6 +9,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.Set;
 
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 import uk.ac.ox.krr.logmap2.oaei.reader.FlatAlignmentReader;
+import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
 
 public class ProcessComposedMappings{
 	public List<String> availableStatistics = new ArrayList<String>();
@@ -37,7 +39,36 @@ public class ProcessComposedMappings{
 		
 	}
 	
-	
+	/**
+	 * If source and target are not in the same order during comparison of two sets of mappings,
+	 * this function allows you to invert the mapping order. For example, if one set is obtained with onto1-onto2, but
+	 * the other set is onto2-onto1, you use this function before comparing the alignment results.
+	 * @param AMappings
+	 * @return
+	 */
+	public Set<MappingObjectStr> swapMappingOrder(Set<MappingObjectStr> AMappings){
+		Set<MappingObjectStr> swappedMappings = new HashSet<MappingObjectStr>();
+		for (MappingObjectStr map: AMappings) {
+			int mappingDirection = map.getMappingDirection();
+			int newMappingDirection = mappingDirection;
+			if(mappingDirection==MappingObjectStr.SUB) {
+			//TODO swap to SUP
+				newMappingDirection = MappingObjectStr.SUP;
+			}else if (mappingDirection==MappingObjectStr.SUP) {
+				//TODO swap to SUB
+				newMappingDirection = MappingObjectStr.SUB;
+
+			}
+			//If EQ or Flagged no swap necessary
+		
+			//In any case we swap source and target
+			MappingObjectStr swappedMap = new MappingObjectStr(map.getIRIStrEnt2(),
+				map.getIRIStrEnt1(), map.getConfidence(),newMappingDirection,map.getTypeOfMapping());
+			swappedMappings.add(swappedMap);
+		}
+		
+		return swappedMappings;
+	}
 	/**
 	 * Performs set subtraction A\B between sets of mappings. Works for any two sets of mappings A and B. 
 	 * @param AMappings
@@ -45,15 +76,13 @@ public class ProcessComposedMappings{
 	 * @return mapSubtracted;
 	 */
 	public Set<MappingObjectStr> mappingSetSubtraction(Set<MappingObjectStr> AMappings, Set<MappingObjectStr> BMappings){
-		Set<MappingObjectStr> mapSubtracted = new HashSet<MappingObjectStr>();
 		
-		for(MappingObjectStr mapping: AMappings) {
-			
-			if(BMappings.contains(mapping)==false) {
-				mapSubtracted.add(mapping);
-			}
-		}
-		
+		//
+		Set<MappingObjectStr> mapSubtracted = new HashSet<MappingObjectStr>(AMappings);
+		mapSubtracted.removeAll(BMappings);
+		//
+		System.out.println("Performing A - B, A has " + AMappings.size() + " items, B has " + BMappings.size());
+		System.out.println(" Subtraction yielded " + mapSubtracted.size() + " items.");		
 		return mapSubtracted;
 	}
 	
@@ -158,17 +187,60 @@ public class ProcessComposedMappings{
 		String moMappingsPath = moUtils.composedMappingsPath;
 		String newMappingsPath = moUtils.newUniqueMappingsPath;
 		String sourceTargetMappingsFile =moUtils.sourceToTargetPath + "source2target.txt";
-		System.out.println("Location " + sourceTargetMappingsFile);
+		System.out.println("Location of Logmap mappings" + sourceTargetMappingsFile);
+		
+		// TODO add to the utils
+		String llmDefaultMapsFile = "/home/valentina/Data/OAEI-input/logmap-llm/anatomy/logmap-llm-default/mouse-human.rdf";
+		String llmMutualSubMapsFile = "/home/valentina/Data/OAEI-input/logmap-llm/anatomy/logmap-llm-mutual-subsumption/mouse-human.rdf";
+		String storeDiffLlm1 = moUtils.parentPath + "composed-mappings-minus-llm-default/";
+		String storeDiffLlm2 = moUtils.parentPath + "composed-mappings-minus-llm-mutualsub/";
+
+		
+		
 		try {
 			
 			FlatAlignmentReader mappingReader = new FlatAlignmentReader(sourceTargetMappingsFile);
+			//FlatAlignmentReader llmDefaultmappingReader = new FlatAlignmentReader(llmDefaultMapsFile);
+			//TODO what is the difference between the two readers?
+			MappingsReaderManager llmDefaultmappingReader = new MappingsReaderManager(llmDefaultMapsFile, "RDF");
+			MappingsReaderManager llmMutualSubmappingReader = new MappingsReaderManager(llmMutualSubMapsFile, "RDF");
+
 			Set<MappingObjectStr> mapSource2Target = mappingReader.getMappingObjects();
 			System.out.println("Original set of mappings contains " + mapSource2Target.size() + " mappings");
 			
-			// Save stats to file
-			String timestamp = Instant.now().toString();
+			//TODO get mappings from LogmapLLM Default
+			Set<MappingObjectStr> llmDefaultMappings = Collections.emptySet();
+			Set<MappingObjectStr> llmMutualSubMappings = Collections.emptySet();
 
-			File file = new File(moUtils.parentPath + "Statistics-" + timestamp +".csv");
+			try {
+			llmDefaultMappings = llmDefaultmappingReader.getMappingObjects();
+			System.out.println("Logmap LLM (default) set of mappings contains " + llmDefaultMappings.size() + " mappings");
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			}
+			
+			try {
+			llmMutualSubMappings = llmMutualSubmappingReader.getMappingObjects();
+			System.out.println("Logmap LLM (default) set of mappings contains " + llmMutualSubMappings.size() + " mappings");
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			}
+			
+			// Prepare the single file with all new mappings from all mediating ontologies minus all the mappings from logmap $MC_{all}^{Lmap}$ 
+			String allComposedName = moUtils.parentPath + "all-composed";
+			Set<MappingObjectStr> allComposedCollect = new HashSet<MappingObjectStr>();
+			
+			// Prepare the single file with all new mappings from all mediating ontologies minus all the mappings from logmap $MC_{all}^{Lmap}$ 
+			String allComposedMinusLogMapName = moUtils.parentPath + "all-composed-minus-logmap";
+			Set<MappingObjectStr> allComposedMinusLogMapCollect = new HashSet<MappingObjectStr>();
+			
+			
+			// Save stats to file
+			//String timestamp = Instant.now().toString();
+			//File file = new File(moUtils.parentPath + "Statistics-" + timestamp +".csv");
+			File file = new File(moUtils.parentPath + "Statistics.csv");
 			// Create a File and append if it already exists.
 			Writer writer = new FileWriter(file, true);
 			//Reader reader = new FileReader(file);
@@ -182,11 +254,14 @@ public class ProcessComposedMappings{
 
 					Set<MappingObjectStr> moComposedMappings = readersArray.get(ontoLabel).getMappingObjects();
 					System.out.println("Mediating ontology gave a total of " + moComposedMappings.size() + " mappings");
+					
+					allComposedCollect.addAll(moComposedMappings);
 					Set<MappingObjectStr> newMappings = moProcess.mappingSetSubtraction(moComposedMappings, mapSource2Target);
 					System.out.println("Of which new mappings are " + newMappings.size());
 					String newMapPath = newMappingsPath + ontoLabel;
 					moUtils.saveOntologyMappings(newMappings, newMapPath, onto1_iri, onto2_iri);
 					
+					allComposedMinusLogMapCollect.addAll(newMappings);
 					statsRow.replace("ontology_label", ontoLabel);
 					statsRow.replace("all_composed_mappings_count", String.valueOf(moComposedMappings.size()));
 					statsRow.replace("unique_mappings_count_minus_logmap", String.valueOf(newMappings.size()));
@@ -195,13 +270,31 @@ public class ProcessComposedMappings{
 
 			writer.close();
 			//reader.close();
+			//Create single file with all composed mappings (from all mediating ontologies)
+			moUtils.saveOntologyMappings(allComposedCollect, allComposedName, onto1_iri, onto2_iri);
 			
+			// Create single file with all new mappings
+			moUtils.saveOntologyMappings(allComposedMinusLogMapCollect, allComposedMinusLogMapName, onto1_iri, onto2_iri);
+
+			//TODO LLM subtraction - done all at once
+			Set<MappingObjectStr> reversedAllComposedCollect = moProcess.swapMappingOrder(allComposedCollect);
+			Set<MappingObjectStr> ComposedMappingsMinusLlmDefault = moProcess.mappingSetSubtraction(reversedAllComposedCollect,llmDefaultMappings);
+
+			String allComposedMinusLLMDefaultName = storeDiffLlm1 + "all-composed-minus-llm-default";
+			moUtils.saveOntologyMappings(ComposedMappingsMinusLlmDefault, allComposedMinusLLMDefaultName, onto1_iri, onto2_iri);
+			
+
+			Set<MappingObjectStr> ComposedMappingsMinusLlmMutualSub = moProcess.mappingSetSubtraction(reversedAllComposedCollect,llmMutualSubMappings);
+			
+			String allComposedMinusLLMMutualSubName = storeDiffLlm2 + "all-composed-minus-llm-mutualsub";
+			moUtils.saveOntologyMappings(ComposedMappingsMinusLlmMutualSub, allComposedMinusLLMMutualSubName, onto1_iri, onto2_iri);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 }
+
 
 				
 
