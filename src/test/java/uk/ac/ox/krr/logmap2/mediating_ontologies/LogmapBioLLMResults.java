@@ -13,6 +13,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+
+import uk.ac.ox.krr.logmap2.LogMap3_RepairFacility;
 import uk.ac.ox.krr.logmap2.io.ReadFile;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 import uk.ac.ox.krr.logmap2.oaei.reader.FlatAlignmentReader;
@@ -133,11 +141,40 @@ public class LogmapBioLLMResults{
 			e.printStackTrace();
 		}
 		
+		OWLOntologyManager onto_manager = OWLManager.createOWLOntologyManager();
+		// In case an import is broken
+		OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
+		// Important to reassign value, see https://github.com/owlcs/owlapi/issues/503
+		config = config.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
+		onto_manager.setOntologyLoaderConfiguration(config);
+		
 		
 		// onto1
 		String onto1_iri = "/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/mouse.owl";
+
+		OWLOntology onto1 = null;
+		
+		try {
+		System.out.println("Loading the first ontology " + onto1_iri);
+		onto1 = onto_manager.loadOntology(IRI.create("file:" + onto1_iri));
+		}catch (Exception e) {
+			System.out.println("Failed to load " + onto1_iri);
+		}
+
 		//onto2
 		String onto2_iri = "/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/human.owl";
+		OWLOntology onto2 = null;
+		
+		
+		try {
+			System.out.println("Loading the second ontology " + onto2_iri);
+			onto2 = onto_manager.loadOntology(IRI.create("file:" + onto2_iri));
+			
+			}catch (Exception e) {
+				System.out.println("Failed to load " + onto2_iri);
+			}
+		
+		
 		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
 		String parentPath = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/logmapBioLLM/";
 		// Load the mappings found by Logmap LLM (default and mutual subsumption)
@@ -235,6 +272,33 @@ public class LogmapBioLLMResults{
 		double f1MSub = computeF1score(statsMSub[0], statsMSub[1]);
 		System.out.println("LogmapBioLLM(MutualSubsumption) precision: " + Double.toString(statsMSub[0]) + " \t recall:" + statsMSub[1]+ 
 				"\tF1:" + f1MSub + "\n\n");
+		
+		System.out.println("\n\n**** LogmapBioLLM with repair****\n\n");
+		//fixed_mappings are llmDefaultMappings
+		// mappings2review are llmTrueComposedMapsWithLLMDefault
+		LogMap3_RepairFacility TrueWithDefault_repair = new LogMap3_RepairFacility(onto1, onto2, llmDefaultMappings, llmTrueComposedMapsWithLLMDefault);
+		Set<MappingObjectStr> LogmapBioLLM_default_r = TrueWithDefault_repair.getCleanMappings();
+		System.out.println("LLM Default - Size of fixed_mappings:" + llmDefaultMappings.size() + "\tmappings to review:" + llmTrueComposedMapsWithLLMDefault.size() +
+				"\t repaired mappings: " + LogmapBioLLM_default_r.size());
+		//fixed_mappings are llmMutualSubMappings
+		// mappings2review are llmTrueComposedMapsWithLLMDefault
+		LogMap3_RepairFacility TrueWithMSub_repair = new LogMap3_RepairFacility(onto1, onto2, llmMutualSubMappings, llmTrueComposedMapsWithLLMMSub);
+		Set<MappingObjectStr> LogmapBioLLM_msub_r = TrueWithMSub_repair.getCleanMappings();
+		System.out.println("LLM MSub - Size of fixed_mappings:" + llmMutualSubMappings.size() + "\tmappings to review:" + llmTrueComposedMapsWithLLMMSub.size() +
+				"\t repaired mappings: " + LogmapBioLLM_msub_r.size());
+		
+		LogmapBioLLM_default_r.addAll(llmDefaultMappings);
+		// Precision, Recall, F1
+		double[] statsRepDefault = computePrecisionAndRecall(raMappings, LogmapBioLLM_default_r);
+		double f1RepDefault = computeF1score(statsRepDefault[0], statsRepDefault[1]);
+		System.out.println("LogmapBioLLM(Default)Repaired precision: " + Double.toString(statsRepDefault[0]) + " \t recall:" + statsRepDefault[1]+ 
+				"\tF1:" + f1RepDefault + "\n\n");
+		
+		LogmapBioLLM_msub_r.addAll(llmMutualSubMappings);
+		double[] statsRepMSub = computePrecisionAndRecall(raMappings, LogmapBioLLM_msub_r);
+		double f1RepMSub = computeF1score(statsRepMSub[0], statsRepMSub[1]);
+		System.out.println("LogmapBioLLM(MutualSubsumption)Repaired precision: " + Double.toString(statsRepMSub[0]) + " \t recall:" + statsRepMSub[1]+ 
+				"\tF1:" + f1RepMSub + "\n\n");
 
 	}
 }
