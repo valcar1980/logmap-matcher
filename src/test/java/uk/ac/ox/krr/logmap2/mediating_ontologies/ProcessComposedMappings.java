@@ -208,7 +208,7 @@ public class ProcessComposedMappings{
 			Set<MappingObjectStr> mapSource2Target = mappingReader.getMappingObjects();
 			System.out.println("Original set of mappings contains " + mapSource2Target.size() + " mappings");
 			
-			//TODO get mappings from LogmapLLM Default
+			//Get mappings from LogmapLLM Default
 			Set<MappingObjectStr> llmDefaultMappings = Collections.emptySet();
 			Set<MappingObjectStr> llmMutualSubMappings = Collections.emptySet();
 
@@ -222,7 +222,7 @@ public class ProcessComposedMappings{
 			
 			try {
 			llmMutualSubMappings = llmMutualSubmappingReader.getMappingObjects();
-			System.out.println("Logmap LLM (default) set of mappings contains " + llmMutualSubMappings.size() + " mappings");
+			System.out.println("Logmap LLM (mutual subsumption) set of mappings contains " + llmMutualSubMappings.size() + " mappings");
 			}
 			catch(Exception e) {
 				e.printStackTrace();

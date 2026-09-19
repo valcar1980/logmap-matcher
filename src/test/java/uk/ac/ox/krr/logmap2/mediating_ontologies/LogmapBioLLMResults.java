@@ -9,11 +9,14 @@ package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import uk.ac.ox.krr.logmap2.io.ReadFile;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
+import uk.ac.ox.krr.logmap2.oaei.reader.FlatAlignmentReader;
+import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
 
 //import uk.ac.ox.krr.logmap2.oaei.reader.FlatAlignmentReader;
 
@@ -35,52 +38,43 @@ public class LogmapBioLLMResults{
 	 */
 	public static Set<MappingObjectStr> readAnnotatedMappingsFromTSV(String fullPath) {
 		
-		
 		Set<MappingObjectStr> mapSet = new HashSet<MappingObjectStr>();
 		try {
 			
 			File tsv = new File(fullPath);
 			ReadFile reader = new ReadFile(tsv);
 				
-			
-			
-			
 			int countTrue = 0;
 			int countFalse = 0;
 			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
 				String[] lineElements;
-				System.out.println(line);
+				//System.out.println(line);
 				if (line.startsWith("#") || !line.startsWith("http")){ //skip comments and header row
-					//line=reader.readLine();
 					continue;
 				}
 				
 				if (line.indexOf("\t")<0){
-					//line=reader.readLine();
 					continue;
 				}
 				
 				lineElements=line.split("\t");
 					
-				System.out.println(lineElements[0] + "  " + lineElements[1]  + "  " + lineElements[5]);
+				//System.out.println(lineElements[0] + "  " + lineElements[1]  + "  " + lineElements[5]);
 				
 				if (Boolean.parseBoolean(lineElements[5].toLowerCase())) {
-					System.out.println("Found some truth!");
+					//System.out.println("Found some truth!");
 					//TODO it might not be equivalence, I need to check elements[2]
 					//TODO it might not be a CLS equivalence, I need to check and remove 0
 					MappingObjectStr formattedMap = new MappingObjectStr(lineElements[0],
 							lineElements[1], Double.valueOf(lineElements[3]), MappingObjectStr.EQ,0);
 				
 					mapSet.add(formattedMap);
-
-											
+						
 					countTrue++;
 				}
 				else {
 					countFalse++;
 				}
-				//line=reader.readLine();
-
 			}
 			
 			reader.closeBuffer();
@@ -96,32 +90,67 @@ public class LogmapBioLLMResults{
 	
 	public static void main(String[] args) {
 		
-		// Load mappings
-		
-		String composedMappingsFile = "";
-		String llmDefaultMappingsFile = "/home/valentina/Data/anatomy-composed-llm-annotated/all-composed-minus-llm-default.annotated.tsv";
-		String llmMutualSubMappingsFile = "/home/valentina/Data/anatomy-composed-llm-annotated/all-composed-minus-llm-mutualsub.annotated.tsv";
-		
-		Set<MappingObjectStr> llmDefaultMaps = readAnnotatedMappingsFromTSV(llmDefaultMappingsFile);
+		// Load the mappings found by Logmap LLM (default and mutual subsumption)
+		String llmDefaultMapsFile = "/home/valentina/Data/OAEI-input/logmap-llm/anatomy/logmap-llm-default/mouse-human.rdf";
+		String llmMutualSubMapsFile = "/home/valentina/Data/OAEI-input/logmap-llm/anatomy/logmap-llm-mutual-subsumption/mouse-human.rdf";
+		MappingsReaderManager llmDefaultmappingReader = new MappingsReaderManager(llmDefaultMapsFile, "RDF");
+		MappingsReaderManager llmMutualSubmappingReader = new MappingsReaderManager(llmMutualSubMapsFile, "RDF");
 		
 		
+		// Load  composed mappings after they have been annotated using LLM (default and mutual subsumption)
 		
-		ProcessComposedMappings moProcess = new ProcessComposedMappings(); // saveToCSV = true;
+		String composedAnnotatedWithLLMDefaultPath = "/home/valentina/Data/anatomy-composed-llm-annotated/all-composed-minus-llm-default.annotated.tsv";
+		String composedAnnotatedWithLLMMutualSubPath= "/home/valentina/Data/anatomy-composed-llm-annotated/all-composed-minus-llm-mutualsub.annotated.tsv";
+		
+		// Read only the mappings that were annotated as True
+		
+		//LLM Default
+		Set<MappingObjectStr> llmTrueComposedMapsWithLLMDefault = readAnnotatedMappingsFromTSV(composedAnnotatedWithLLMDefaultPath);
+		System.out.println("Composed mappings that are true according to LLM(Default): " + llmTrueComposedMapsWithLLMDefault.size() + " mappings");
+		Set<MappingObjectStr> LogmapLLMBio_default = new HashSet<>();
+		LogmapLLMBio_default.addAll(llmTrueComposedMapsWithLLMDefault); 
+		
+		//LLM Mutual Subsumption
+		Set<MappingObjectStr> llmTrueComposedMapsWithLLMMSub = readAnnotatedMappingsFromTSV(composedAnnotatedWithLLMMutualSubPath);
+		System.out.println("Composed mappings that are true according to LLM(mutual subsumption): " + llmTrueComposedMapsWithLLMMSub.size() + " mappings");
+		Set<MappingObjectStr> LogmapLLMBio_msub = new HashSet<>();
+		LogmapLLMBio_msub.addAll(llmTrueComposedMapsWithLLMMSub); 
+
+		// Add the mappings obtained by LogmapLLM
+		
+		//Get mappings from LogmapLLM Default
+		Set<MappingObjectStr> llmDefaultMappings = Collections.emptySet();
+		Set<MappingObjectStr> llmMutualSubMappings = Collections.emptySet();
+
+		try {
+		llmDefaultMappings = llmDefaultmappingReader.getMappingObjects();
+		System.out.println("Logmap LLM (default) set of mappings contains " + llmDefaultMappings.size() + " mappings");
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		LogmapLLMBio_default.addAll(llmDefaultMappings);
+		System.out.println("LogmapBioLLM(Default) contains: " + LogmapLLMBio_default.size() + " mappings");
+
+		
+		//Get mappings from LogmapLLM mutual subsumption
+		
+		try {
+		llmMutualSubMappings = llmMutualSubmappingReader.getMappingObjects();
+		System.out.println("Logmap LLM (mutual subsumption) set of mappings contains " + llmMutualSubMappings.size() + " mappings");
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		LogmapLLMBio_msub.addAll(llmMutualSubMappings);
+		System.out.println("LogmapBioLLM(Mutual Subsumtpion) contains: " + LogmapLLMBio_msub.size() + " mappings");
 
 		
 		
-		// Load The logmap-bio results (composed - logmap)
-		//String LogmapBioMapsFile = ""'
-		//FlatAlignmentReader mappingReader = new FlatAlignmentReader(LogmapBioMapsFile);
 
-		//LogmapBioMaps = ';
-		
-		//Load the logmap-llm results default
-		//Load the logmap-llm results mutual subsumption
-		
-		// Produce the logmap-bio-llm results default
-		
-		// The logmap-bio-llm results with mutual subsumption
 		
 	}
 }
