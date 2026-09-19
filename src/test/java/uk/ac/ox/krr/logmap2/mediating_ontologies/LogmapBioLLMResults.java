@@ -88,7 +88,44 @@ public class LogmapBioLLMResults{
 		
 	}
 	
+	public static double[] computePrecisionAndRecall(Set<MappingObjectStr> referenceMappings, Set<MappingObjectStr> testMappings ) {
+		Set<MappingObjectStr> intersection = new HashSet<MappingObjectStr>(referenceMappings);
+		intersection.retainAll(testMappings);
+		System.out.println("TP:" + intersection.size() + "\t TP + FP: " + testMappings.size() +
+		"\tTP + FN:" + referenceMappings.size());
+		
+		double precision;
+		double recall;
+		
+		precision = ((double) intersection.size())/ ((double) testMappings.size());
+		System.out.println(precision);
+
+		recall = ((double) intersection.size()) /((double) referenceMappings.size());
+		System.out.println(recall);
+
+		
+		double[] stats = new double[2];
+		stats[0] = precision;
+		stats[1] = recall;
+		
+		return stats;
+		
+	}
+	
 	public static void main(String[] args) {
+		//Load the OAEI reference
+		String raMapsFile = "/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/reference.rdf";
+		MappingsReaderManager raMapsReader = new MappingsReaderManager(raMapsFile, "RDF");
+		Set<MappingObjectStr> raMappings = Collections.emptySet();
+
+		try {
+		raMappings = raMapsReader.getMappingObjects();
+		System.out.println("Reference set of mappings contains " + raMappings.size() + " mappings");
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
 		
 		// onto1
 		String onto1_iri = "/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/mouse.owl";
@@ -159,8 +196,12 @@ public class LogmapBioLLMResults{
 		String LogmapLLMBio_msubName = parentPath + "logmapBioLLMMSubResults";
 		moUtils.saveOntologyMappings(LogmapLLMBio_msub, LogmapLLMBio_msubName, onto1_iri, onto2_iri);
 		
-		
+		// Precision, Recall, F1
+		double[] statsDefault = computePrecisionAndRecall(raMappings, LogmapLLMBio_default);
+		System.out.println("LogmapBioLLM(Default) precision: " + Double.toString(statsDefault[0]) + " \t recall:" + statsDefault[1]);
 
+		double[] statsMSub = computePrecisionAndRecall(raMappings, LogmapLLMBio_msub);
+		System.out.println("LogmapBioLLM(MutualSubsumption) precision: " + Double.toString(statsMSub[0]) + " \t recall:" + statsMSub[1]);
 		
 	}
 }
