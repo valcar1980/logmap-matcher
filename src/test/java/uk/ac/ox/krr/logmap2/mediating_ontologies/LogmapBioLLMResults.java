@@ -105,11 +105,18 @@ public class LogmapBioLLMResults{
 
 		
 		double[] stats = new double[2];
-		stats[0] = precision;
-		stats[1] = recall;
+		stats[0] = (double)Math.round(precision*1000d)/1000d;
+		stats[1] = (double)Math.round(recall*1000d)/1000d;
 		
 		return stats;
 		
+	}
+	
+	public static double computeF1score(double precision, double recall) {
+		
+		double f1score = 2* (precision*recall)/(precision + recall);
+		f1score = (double)Math.round(f1score*1000d)/1000d;
+		return f1score;
 	}
 	
 	public static void main(String[] args) {
@@ -136,8 +143,8 @@ public class LogmapBioLLMResults{
 		// Load the mappings found by Logmap LLM (default and mutual subsumption)
 		String llmDefaultMapsFile = "/home/valentina/Data/OAEI-input/logmap-llm/anatomy/logmap-llm-default/mouse-human.rdf";
 		String llmMutualSubMapsFile = "/home/valentina/Data/OAEI-input/logmap-llm/anatomy/logmap-llm-mutual-subsumption/mouse-human.rdf";
-		MappingsReaderManager llmDefaultmappingReader = new MappingsReaderManager(llmDefaultMapsFile, "RDF");
-		MappingsReaderManager llmMutualSubmappingReader = new MappingsReaderManager(llmMutualSubMapsFile, "RDF");
+		MappingsReaderManager llmDefaultMappingReader = new MappingsReaderManager(llmDefaultMapsFile, "RDF");
+		MappingsReaderManager llmMutualSubMappingReader = new MappingsReaderManager(llmMutualSubMapsFile, "RDF");
 		
 		
 		// Load  composed mappings after they have been annotated using LLM (default and mutual subsumption)
@@ -166,42 +173,68 @@ public class LogmapBioLLMResults{
 		Set<MappingObjectStr> llmMutualSubMappings = Collections.emptySet();
 
 		try {
-		llmDefaultMappings = llmDefaultmappingReader.getMappingObjects();
-		System.out.println("Logmap LLM (default) set of mappings contains " + llmDefaultMappings.size() + " mappings");
+		llmDefaultMappings = llmDefaultMappingReader.getMappingObjects();
+		//System.out.println("Logmap LLM (default) set of mappings contains " + llmDefaultMappings.size() + " mappings");
 		}
 		catch(Exception e) {
 			e.printStackTrace();
 		}
 		
+		System.out.println("\n\n**** LogmapLLM ****\n\n");
+
+		// Precision, Recall, F1
+		double[] statsLLMDefault = computePrecisionAndRecall(raMappings,llmDefaultMappings);
+		double f1LLMDefault = computeF1score(statsLLMDefault[0],statsLLMDefault[1]);
+		System.out.println("Logmap LLM(Default) precision: " + Double.toString(statsLLMDefault[0]) + 
+				" \t recall:" + Double.toString(statsLLMDefault[1])+ "\t F1:"+ Double.toString(f1LLMDefault) +"\n\n");
+		
 		
 		LogmapLLMBio_default.addAll(llmDefaultMappings);
-		System.out.println("LogmapBioLLM(Default) contains: " + LogmapLLMBio_default.size() + " mappings");
+		//System.out.println("LogmapBioLLM(Default) contains: " + LogmapLLMBio_default.size() + " mappings");
+		
 		// Save the mappings
 		String LogmapLLMBio_defaultName = parentPath + "logmapBioLLMDefaultResults";
-		moUtils.saveOntologyMappings(LogmapLLMBio_msub, LogmapLLMBio_defaultName, onto1_iri, onto2_iri);
+		moUtils.saveOntologyMappings(LogmapLLMBio_default, LogmapLLMBio_defaultName, onto1_iri, onto2_iri);
 		
 		//Get mappings from LogmapLLM mutual subsumption
 		
 		try {
-		llmMutualSubMappings = llmMutualSubmappingReader.getMappingObjects();
+		llmMutualSubMappings = llmMutualSubMappingReader.getMappingObjects();
 		System.out.println("Logmap LLM (mutual subsumption) set of mappings contains " + llmMutualSubMappings.size() + " mappings");
 		}
 		catch(Exception e) {
 			e.printStackTrace();
 		}
 		
+		System.out.println("LogmapBioLLM(Mutual Subsumtpion) contains: " + llmMutualSubMappings.size() + " mappings");
+
+		
+		// Precision, Recall, F1
+		double[] statsLLMMSub = computePrecisionAndRecall(raMappings,llmMutualSubMappings);
+		double f1LLMMSub = computeF1score(statsLLMMSub[0],statsLLMMSub[1]);
+		System.out.println("Logmap LLM(Mutual Subsumption) precision: " + Double.toString(statsLLMMSub[0]) + 
+				" \t recall:" + Double.toString(statsLLMMSub[1]) + "\t F1:" + Double.toString(f1LLMMSub) + "\n\n");
+		
+		
+		
 		LogmapLLMBio_msub.addAll(llmMutualSubMappings);
-		System.out.println("LogmapBioLLM(Mutual Subsumtpion) contains: " + LogmapLLMBio_msub.size() + " mappings");
 		// Save the mappings
 		String LogmapLLMBio_msubName = parentPath + "logmapBioLLMMSubResults";
 		moUtils.saveOntologyMappings(LogmapLLMBio_msub, LogmapLLMBio_msubName, onto1_iri, onto2_iri);
 		
+		System.out.println("\n\n**** LogmapBioLLM ****\n\n");
+		
 		// Precision, Recall, F1
 		double[] statsDefault = computePrecisionAndRecall(raMappings, LogmapLLMBio_default);
-		System.out.println("LogmapBioLLM(Default) precision: " + Double.toString(statsDefault[0]) + " \t recall:" + statsDefault[1]);
+		double f1Default = computeF1score(statsDefault[0], statsDefault[1]);
+		System.out.println("LogmapBioLLM(Default) precision: " + Double.toString(statsDefault[0]) + " \t recall:" + statsDefault[1]+ 
+				"\tF1:" + f1Default + "\n\n");
+
 
 		double[] statsMSub = computePrecisionAndRecall(raMappings, LogmapLLMBio_msub);
-		System.out.println("LogmapBioLLM(MutualSubsumption) precision: " + Double.toString(statsMSub[0]) + " \t recall:" + statsMSub[1]);
-		
+		double f1MSub = computeF1score(statsMSub[0], statsMSub[1]);
+		System.out.println("LogmapBioLLM(MutualSubsumption) precision: " + Double.toString(statsMSub[0]) + " \t recall:" + statsMSub[1]+ 
+				"\tF1:" + f1MSub + "\n\n");
+
 	}
 }
