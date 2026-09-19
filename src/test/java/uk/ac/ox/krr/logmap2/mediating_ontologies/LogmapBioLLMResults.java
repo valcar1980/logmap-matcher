@@ -90,6 +90,12 @@ public class LogmapBioLLMResults{
 	
 	public static void main(String[] args) {
 		
+		// onto1
+		String onto1_iri = "/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/mouse.owl";
+		//onto2
+		String onto2_iri = "/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/human.owl";
+		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
+		String parentPath = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/logmapBioLLM/";
 		// Load the mappings found by Logmap LLM (default and mutual subsumption)
 		String llmDefaultMapsFile = "/home/valentina/Data/OAEI-input/logmap-llm/anatomy/logmap-llm-default/mouse-human.rdf";
 		String llmMutualSubMapsFile = "/home/valentina/Data/OAEI-input/logmap-llm/anatomy/logmap-llm-mutual-subsumption/mouse-human.rdf";
@@ -133,7 +139,9 @@ public class LogmapBioLLMResults{
 		
 		LogmapLLMBio_default.addAll(llmDefaultMappings);
 		System.out.println("LogmapBioLLM(Default) contains: " + LogmapLLMBio_default.size() + " mappings");
-
+		// Save the mappings
+		String LogmapLLMBio_defaultName = parentPath + "logmapBioLLMDefaultResults";
+		moUtils.saveOntologyMappings(LogmapLLMBio_msub, LogmapLLMBio_defaultName, onto1_iri, onto2_iri);
 		
 		//Get mappings from LogmapLLM mutual subsumption
 		
@@ -147,7 +155,9 @@ public class LogmapBioLLMResults{
 		
 		LogmapLLMBio_msub.addAll(llmMutualSubMappings);
 		System.out.println("LogmapBioLLM(Mutual Subsumtpion) contains: " + LogmapLLMBio_msub.size() + " mappings");
-
+		// Save the mappings
+		String LogmapLLMBio_msubName = parentPath + "logmapBioLLMMSubResults";
+		moUtils.saveOntologyMappings(LogmapLLMBio_msub, LogmapLLMBio_msubName, onto1_iri, onto2_iri);
 		
 		
 
