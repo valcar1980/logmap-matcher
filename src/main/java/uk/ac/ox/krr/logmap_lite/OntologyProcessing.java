@@ -367,7 +367,7 @@ public class OntologyProcessing {
 	}
 	
 	public String getLabel4identifier(int ident){
-		return Utilities.getEntityLabelFromURI(listofOWLClass.get(ident).getIRI().toString());		
+		return Utilities.getEntityNameFromURI(listofOWLClass.get(ident).getIRI().toString());		
 	}
 	
 
@@ -490,7 +490,7 @@ public class OntologyProcessing {
 		
 		//If it doesn't exist any label then we use entity name
 		if (labels.isEmpty()){
-			labels.add(Utilities.getEntityLabelFromURI(ent.getIRI().toString()));
+			labels.add(Utilities.getEntityNameFromURI(ent.getIRI().toString()));
 			
 		}
 		
@@ -758,7 +758,7 @@ public class OntologyProcessing {
 			
 			
 			//Add label name
-			label_value = Utilities.getEntityLabelFromURI(indiv.getIRI().toString());
+			label_value = Utilities.getEntityNameFromURI(indiv.getIRI().toString());
 			if (label_value.length()>2){
 				lexiconValues4individual.add(label_value);
 			}

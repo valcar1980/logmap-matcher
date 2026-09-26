@@ -480,8 +480,8 @@ public class LogMapRepair_WebService {
 		
 				
 		//Translate from mapping 2 index
-		ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-		ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+		ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+		ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 		
 		
 		//We only consider classes
@@ -544,8 +544,8 @@ public class LogMapRepair_WebService {
 		int ide2;
 		
 		//Translate from mapping 2 index
-		ide1=onto_process1.getIdentifier4ObjectPropName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-		ide2=onto_process2.getIdentifier4ObjectPropName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+		ide1=onto_process1.getIdentifier4ObjectPropName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+		ide2=onto_process2.getIdentifier4ObjectPropName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 		
 		
 		//We only consider classes
@@ -575,8 +575,8 @@ public class LogMapRepair_WebService {
 		int ide2;
 		
 		//Translate from mapping 2 index
-		ide1=onto_process1.getIdentifier4DataPropName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-		ide2=onto_process2.getIdentifier4DataPropName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+		ide1=onto_process1.getIdentifier4DataPropName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+		ide2=onto_process2.getIdentifier4DataPropName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 		
 		
 		//We only consider classes
@@ -604,8 +604,8 @@ public class LogMapRepair_WebService {
 		int ide2;
 		
 		//Translate from mapping 2 index
-		ide1=onto_process1.getIdentifier4InstanceName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-		ide2=onto_process2.getIdentifier4InstanceName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+		ide1=onto_process1.getIdentifier4InstanceName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+		ide2=onto_process2.getIdentifier4InstanceName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 		
 		
 		//We only consider classes

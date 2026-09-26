@@ -229,8 +229,8 @@ public class AddConfidence2Mappings {
 		
 				
 		//Translate from mapping 2 index
-		ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-		ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+		ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+		ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 		
 		
 		//We only consider classes
@@ -270,8 +270,8 @@ public class AddConfidence2Mappings {
 						
 			if (map.getTypeOfMapping()==Utilities.CLASSES){
 				
-				ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-				ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+				ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+				ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 				
 				//Get isub and scope
 				map.setConfidenceMapping(
@@ -282,8 +282,8 @@ public class AddConfidence2Mappings {
 			}
 			else if (map.getTypeOfMapping()==Utilities.OBJECTPROPERTIES){ 
 			
-				ide1=onto_process1.getIdentifier4ObjectPropName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-				ide2=onto_process2.getIdentifier4ObjectPropName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+				ide1=onto_process1.getIdentifier4ObjectPropName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+				ide2=onto_process2.getIdentifier4ObjectPropName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 				
 				//Use only isub
 				map.setConfidenceMapping(mapping_manager.getIsubScore4ObjectPropertyLabels(ide1, ide2));
@@ -294,8 +294,8 @@ public class AddConfidence2Mappings {
 			
 			else if (map.getTypeOfMapping()==Utilities.DATAPROPERTIES){ 
 				
-				ide1=onto_process1.getIdentifier4DataPropName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-				ide2=onto_process2.getIdentifier4DataPropName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+				ide1=onto_process1.getIdentifier4DataPropName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+				ide2=onto_process2.getIdentifier4DataPropName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 				
 				//Use only isub
 				//Use only isub
@@ -304,8 +304,8 @@ public class AddConfidence2Mappings {
 			}
 			else if (map.getTypeOfMapping()==Utilities.INSTANCES){ 
 			
-				ide1=onto_process1.getIdentifier4InstanceName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-				ide2=onto_process2.getIdentifier4InstanceName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+				ide1=onto_process1.getIdentifier4InstanceName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+				ide2=onto_process2.getIdentifier4InstanceName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 				
 				//Use only isub
 				map.setConfidenceMapping(mapping_manager.getIsubScore4IndividualLabels(ide1, ide2));
