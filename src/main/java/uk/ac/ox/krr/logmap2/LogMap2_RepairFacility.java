@@ -12,6 +12,7 @@ import uk.ac.ox.krr.logmap2.mappings.CandidateMappingManager;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 import uk.ac.ox.krr.logmap2.reasoning.SatisfiabilityIntegration;
 import uk.ac.ox.krr.logmap2.repair.AnchorAssessment;
+import uk.ac.ox.krr.logmap2.utilities.StandardMeasures;
 import uk.ac.ox.krr.logmap2.utilities.Utilities;
 import uk.ac.ox.krr.logmap2.lexicon.LexicalUtilities;
 import uk.ac.ox.krr.logmap2.overlapping.OverlappingExtractor4Mappings;
@@ -765,8 +766,8 @@ public class LogMap2_RepairFacility {
 		
 				
 		//Translate from mapping 2 index
-		ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-		ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+		ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+		ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 		
 		
 		//We only consider classes
@@ -851,8 +852,8 @@ public class LogMap2_RepairFacility {
 		
 				
 		//Translate from mapping 2 index
-		ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-		ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+		ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+		ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 		
 		
 		//We only consider classes
@@ -926,8 +927,8 @@ public class LogMap2_RepairFacility {
 		int ide2;
 		
 		//Translate from mapping 2 index
-		ide1=onto_process1.getIdentifier4ObjectPropName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-		ide2=onto_process2.getIdentifier4ObjectPropName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+		ide1=onto_process1.getIdentifier4ObjectPropName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+		ide2=onto_process2.getIdentifier4ObjectPropName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 		
 		
 		//We only consider classes
@@ -957,8 +958,8 @@ public class LogMap2_RepairFacility {
 		int ide2;
 		
 		//Translate from mapping 2 index
-		ide1=onto_process1.getIdentifier4DataPropName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-		ide2=onto_process2.getIdentifier4DataPropName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+		ide1=onto_process1.getIdentifier4DataPropName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+		ide2=onto_process2.getIdentifier4DataPropName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 		
 		
 		//We only consider classes
@@ -986,8 +987,8 @@ public class LogMap2_RepairFacility {
 		int ide2;
 		
 		//Translate from mapping 2 index
-		ide1=onto_process1.getIdentifier4InstanceName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-		ide2=onto_process2.getIdentifier4InstanceName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+		ide1=onto_process1.getIdentifier4InstanceName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+		ide2=onto_process2.getIdentifier4InstanceName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 		
 		
 		//We only consider classes
@@ -1217,6 +1218,7 @@ public class LogMap2_RepairFacility {
 		
 		
 		LogOutput.print("Num unsat classes lead by repaired mappings using LogMap: " + sat_checker.getNumUnsatClasses());
+		System.out.println("Num unsat classes lead by repaired mappings using LogMap: " + sat_checker.getNumUnsatClasses());
 		
 	}
 	
@@ -1588,7 +1590,10 @@ public class LogMap2_RepairFacility {
 				
 			}
 			
-			
+			//Comment
+			//String reference = "C:/Users/Ernes/OneDrive/Documents/OAEI/anatomy/reference.rdf";
+			//MappingsReaderManager readerReference = new MappingsReaderManager(reference, "RDF");
+
 			
 			LogOutput.printAlways("Loading ontologies...");
 			loader1 = new OntologyLoader(iri_onto1);
@@ -1598,7 +1603,14 @@ public class LogMap2_RepairFacility {
 			
 			readermanager = new MappingsReaderManager(input_mappings_path, format_mappings);
 			
-			new LogMap2_RepairFacility(
+			//Comment
+			//StandardMeasures.computeStandardMeasures(readermanager.getMappingObjects(), readerReference.getMappingObjects());
+			//System.out.println(StandardMeasures.getPrecision()  + "\t" + StandardMeasures.getRecall()  + "\t" + StandardMeasures.getFscore());
+
+			
+			
+			
+			LogMap2_RepairFacility logmap2repair = new LogMap2_RepairFacility(
 					loader1.getOWLOntology(), 
 					loader2.getOWLOntology(), 
 					readermanager.getMappingObjects(),
@@ -1609,6 +1621,11 @@ public class LogMap2_RepairFacility {
 			
 			
 			
+			//Comment
+			//System.out.println("Fixed mappings: " + logmap2repair.getCleanMappings().size());
+			//StandardMeasures.computeStandardMeasures(logmap2repair.getCleanMappings(), readerReference.getMappingObjects());
+			//System.out.println(StandardMeasures.getPrecision()  + "\t" + StandardMeasures.getRecall()  + "\t" + StandardMeasures.getFscore());
+
 			
 		}
 		catch (Exception e){

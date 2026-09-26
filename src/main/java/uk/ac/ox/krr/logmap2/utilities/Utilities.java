@@ -340,7 +340,7 @@ public class Utilities {
 	}
 	
 	
-	public static String getEntityLabelFromURI(String uriStr){
+	public static String getEntityNameFromURI(String uriStr){
 		
 		//LogOutput.print(uriStr + "  " + uriStr.indexOf("#") + "  " + uriStr.split("#").length);
 		
@@ -516,7 +516,7 @@ public class Utilities {
 		System.out.println ("123 are 345: " + "123 are 345".matches(".*"+regex+".*") + "  ." + "123 are 345".split(regex)[0] + " -- " + "123 are 345".split(regex)[1]);
 
 		
-		System.out.println("Name for http://www.opengis.net/citygml/appearance/2.0/  : '" + getEntityLabelFromURI("http://www.opengis.net/citygml/appearance/2.0/") + "'");
+		System.out.println("Name for http://www.opengis.net/citygml/appearance/2.0/  : '" + getEntityNameFromURI("http://www.opengis.net/citygml/appearance/2.0/") + "'");
 		System.out.println("NS for http://www.opengis.net/citygml/appearance/2.0/  : '" + getNameSpaceFromURI("http://www.opengis.net/citygml/appearance/2.0/") + "'");
 		
 		int classId = 345;
@@ -570,12 +570,12 @@ public class Utilities {
 		
 		
 		String uri ="http://ontology.dumontierlab.com/inheresIn";
-		System.out.println(getEntityLabelFromURI(uri));
+		System.out.println(getEntityNameFromURI(uri));
 		System.out.println(getNameSpaceFromURI(uri));
 		
 		
 		String uri2 ="http://ontology.dumontierlab.com/onto.owl#inheresIn";
-		System.out.println(getEntityLabelFromURI(uri2));
+		System.out.println(getEntityNameFromURI(uri2));
 		System.out.println(getNameSpaceFromURI(uri2));
 		
 		if (true)

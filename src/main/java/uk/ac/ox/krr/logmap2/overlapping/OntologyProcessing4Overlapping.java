@@ -324,7 +324,7 @@ public class OntologyProcessing4Overlapping {
 		
 		
 		//Check if concept name is meaningful (not an ID)
-		String name_class = Utilities.getEntityLabelFromURI(cls.getIRI().toString()); 
+		String name_class = Utilities.getEntityNameFromURI(cls.getIRI().toString()); 
 		//If it doesn't exist any label then we use entity name
 		//TODO OJO with yujiao results
 		if (labels.isEmpty() || !name_class.matches(".+[0-9][0-9][0-9]+")){
@@ -361,7 +361,7 @@ public class OntologyProcessing4Overlapping {
 			
 			
 			//Check if concept name is meaningful (not an ID)
-			String name_class = Utilities.getEntityLabelFromURI(cls.getIRI().toString()); 
+			String name_class = Utilities.getEntityNameFromURI(cls.getIRI().toString()); 
 			//If it doesn't exist any label then we use entity name
 			//TODO OJO with yujiao results
 			if (labels.isEmpty() || !name_class.matches(".+[0-9][0-9][0-9]+")){
@@ -455,7 +455,7 @@ public class OntologyProcessing4Overlapping {
 		//If it doesn't exist then we use entity name
 		if (label_value.equals("")){
 		
-			label_value=Utilities.getEntityLabelFromURI(cls.getIRI().toString());
+			label_value=Utilities.getEntityNameFromURI(cls.getIRI().toString());
 			
 		}
 		
