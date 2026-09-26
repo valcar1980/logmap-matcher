@@ -274,18 +274,15 @@ public class LogmapBioLLMResults{
 				"\tF1:" + f1MSub + "\n\n");
 		
 		System.out.println("\n\n**** LogmapBioLLM with repair****\n\n");
+		
+		/** Default **/
+		
 		//fixed_mappings are llmDefaultMappings
 		// mappings2review are llmTrueComposedMapsWithLLMDefault
 		LogMap3_RepairFacility TrueWithDefault_repair = new LogMap3_RepairFacility(onto1, onto2, llmDefaultMappings, llmTrueComposedMapsWithLLMDefault);
 		Set<MappingObjectStr> LogmapBioLLM_default_r = TrueWithDefault_repair.getCleanMappings();
 		System.out.println("LLM Default - Size of fixed_mappings:" + llmDefaultMappings.size() + "\tmappings to review:" + llmTrueComposedMapsWithLLMDefault.size() +
 				"\t repaired mappings: " + LogmapBioLLM_default_r.size());
-		//fixed_mappings are llmMutualSubMappings
-		// mappings2review are llmTrueComposedMapsWithLLMDefault
-		LogMap3_RepairFacility TrueWithMSub_repair = new LogMap3_RepairFacility(onto1, onto2, llmMutualSubMappings, llmTrueComposedMapsWithLLMMSub);
-		Set<MappingObjectStr> LogmapBioLLM_msub_r = TrueWithMSub_repair.getCleanMappings();
-		System.out.println("LLM MSub - Size of fixed_mappings:" + llmMutualSubMappings.size() + "\tmappings to review:" + llmTrueComposedMapsWithLLMMSub.size() +
-				"\t repaired mappings: " + LogmapBioLLM_msub_r.size());
 		
 		LogmapBioLLM_default_r.addAll(llmDefaultMappings);
 		// Precision, Recall, F1
@@ -293,12 +290,24 @@ public class LogmapBioLLMResults{
 		double f1RepDefault = computeF1score(statsRepDefault[0], statsRepDefault[1]);
 		System.out.println("LogmapBioLLM(Default)Repaired precision: " + Double.toString(statsRepDefault[0]) + " \t recall:" + statsRepDefault[1]+ 
 				"\tF1:" + f1RepDefault + "\n\n");
+		String LogmapLLmBio_default_rName = parentPath + "logmapBioLLMDefaultResults_repaired";
+		moUtils.saveOntologyMappings(LogmapBioLLM_default_r, LogmapLLmBio_default_rName, onto1_iri, onto2_iri);
+		
+		/** Mutual Subsumption **/
+		
+		//fixed_mappings are llmMutualSubMappings
+		// mappings2review are llmTrueComposedMapsWithLLMDefault
+		LogMap3_RepairFacility TrueWithMSub_repair = new LogMap3_RepairFacility(onto1, onto2, llmMutualSubMappings, llmTrueComposedMapsWithLLMMSub);
+		Set<MappingObjectStr> LogmapBioLLM_msub_r = TrueWithMSub_repair.getCleanMappings();
+		System.out.println("LLM MSub - Size of fixed_mappings:" + llmMutualSubMappings.size() + "\tmappings to review:" + llmTrueComposedMapsWithLLMMSub.size() +
+				"\t repaired mappings: " + LogmapBioLLM_msub_r.size());
 		
 		LogmapBioLLM_msub_r.addAll(llmMutualSubMappings);
 		double[] statsRepMSub = computePrecisionAndRecall(raMappings, LogmapBioLLM_msub_r);
 		double f1RepMSub = computeF1score(statsRepMSub[0], statsRepMSub[1]);
 		System.out.println("LogmapBioLLM(MutualSubsumption)Repaired precision: " + Double.toString(statsRepMSub[0]) + " \t recall:" + statsRepMSub[1]+ 
 				"\tF1:" + f1RepMSub + "\n\n");
-
+		String LogmapLLmBio_msub_rName = parentPath + "logmapBioLLMMSubResults_repaired";
+		moUtils.saveOntologyMappings(LogmapBioLLM_msub_r, LogmapLLmBio_msub_rName, onto1_iri, onto2_iri);
 	}
 }
