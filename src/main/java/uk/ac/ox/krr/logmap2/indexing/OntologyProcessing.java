@@ -488,7 +488,7 @@ public class OntologyProcessing {
 	 */
 	private  boolean registerUndeclaredAboxPredicate(String predicate_iri, boolean asDataProperty, boolean extractLabels) {
 
-		String entity_name = Utilities.getEntityLabelFromURI(predicate_iri);
+		String entity_name = Utilities.getEntityNameFromURI(predicate_iri);
 		String entity_namespace = Utilities.getNameSpaceFromURI(predicate_iri);
 
 		List<String> cleanWords = processLabel(entity_name);
@@ -905,7 +905,7 @@ public class OntologyProcessing {
 		
 		index.setOntologyId4Class(ident, id_onto);
 		
-		name = Utilities.getEntityLabelFromURI(cls.getIRI().toString());
+		name = Utilities.getEntityNameFromURI(cls.getIRI().toString());
 				
 		//if (name.equals("Mouse_Coccyx"))
 		//	LogOutput.print("Here");
@@ -972,7 +972,7 @@ public class OntologyProcessing {
 			
 			index.setOntologyId4DataProp(ident, id_onto);
 				
-			name = Utilities.getEntityLabelFromURI(dProp.getIRI().toString());
+			name = Utilities.getEntityNameFromURI(dProp.getIRI().toString());
 				
 			index.setDataPropName(ident, name);
 			
@@ -1112,12 +1112,12 @@ public class OntologyProcessing {
 						}
 						else{//we extract name from iri
 							//range_type =  Utilities.getEntityLabelFromURI(Utilities.getEntityLabelFromURI(type.asOWLDatatype().getIRI().toString()));
-							range_type =  Utilities.getEntityLabelFromURI(type.asOWLDatatype().getIRI().toString());
+							range_type =  Utilities.getEntityNameFromURI(type.asOWLDatatype().getIRI().toString());
 						}
 					}
 					catch (Exception e){ //In some cases the datatype is not built in an rises an error
 						//range_type =  Utilities.getEntityLabelFromURI(Utilities.getEntityLabelFromURI(type.asOWLDatatype().getIRI().toString()));
-						range_type =  Utilities.getEntityLabelFromURI(type.asOWLDatatype().getIRI().toString());
+						range_type =  Utilities.getEntityNameFromURI(type.asOWLDatatype().getIRI().toString());
 					}
 					index.addRangeType4DataProperty(ident, range_type);
 				}
@@ -1162,7 +1162,7 @@ public class OntologyProcessing {
 			
 			index.setOntologyId4ObjectProp(ident, id_onto);
 				
-			name = Utilities.getEntityLabelFromURI(oProp.getIRI().toString());
+			name = Utilities.getEntityNameFromURI(oProp.getIRI().toString());
 				
 			index.setObjectPropName(ident, name);
 			
@@ -1275,7 +1275,7 @@ public class OntologyProcessing {
 			List<String> cleanWordsInverse;
 			for (OWLObjectPropertyExpression propexp : EntitySearcher.getInverses(oProp, onto)){
 				if (!propexp.isAnonymous()){
-					inverse_name = Utilities.getEntityLabelFromURI(
+					inverse_name = Utilities.getEntityNameFromURI(
 							propexp.asOWLObjectProperty().getIRI().toString());
 					
 					//Reuse name of inverse property to create an alternative label for the property
@@ -1390,7 +1390,7 @@ public class OntologyProcessing {
 			
 			
 			//Name in URI
-			name = Utilities.getEntityLabelFromURI(indiv.getIRI().toString());
+			name = Utilities.getEntityNameFromURI(indiv.getIRI().toString());
 			index.setIndividualName(ident, name);
 			//We add a better label below if there are alternative labels
 			index.setIndividualLabel(ident, name);
@@ -4255,7 +4255,7 @@ public class OntologyProcessing {
 				
 				
 				//Init label with name of the property
-				label_name = Utilities.getEntityLabelFromURI(dataprop.asOWLDataProperty().getIRI().toString());
+				label_name = Utilities.getEntityNameFromURI(dataprop.asOWLDataProperty().getIRI().toString());
 				
 				for (OWLLiteral literal : dataProp2values.get(dataprop)){
 					
@@ -4285,7 +4285,7 @@ public class OntologyProcessing {
 				//	continue;
 			
 				//Init label with name of the property
-				label_name = Utilities.getEntityLabelFromURI(objprop.asOWLObjectProperty().getIRI().toString());
+				label_name = Utilities.getEntityNameFromURI(objprop.asOWLObjectProperty().getIRI().toString());
 				
 				for (OWLIndividual indiv_deep2 : objProp2values.get(objprop)){
 					
@@ -4318,7 +4318,7 @@ public class OntologyProcessing {
 							if (dataprop.isAnonymous())
 								continue;
 							
-							label_name = Utilities.getEntityLabelFromURI(dataprop.asOWLDataProperty().getIRI().toString());
+							label_name = Utilities.getEntityNameFromURI(dataprop.asOWLDataProperty().getIRI().toString());
 						
 							for (OWLLiteral literal : dataProp2values.get(dataprop)){
 								
@@ -4338,7 +4338,7 @@ public class OntologyProcessing {
 							if (objectprop2.isAnonymous())
 								continue;
 							
-							label_name = Utilities.getEntityLabelFromURI(objectprop2.asOWLObjectProperty().getIRI().toString());
+							label_name = Utilities.getEntityNameFromURI(objectprop2.asOWLObjectProperty().getIRI().toString());
 						
 							for (OWLIndividual indiv_deep3 : objProp2values_deep2.get(objectprop2)){
 								

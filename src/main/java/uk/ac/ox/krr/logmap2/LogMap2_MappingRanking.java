@@ -213,8 +213,8 @@ public class LogMap2_MappingRanking {
 				
 				
 				//Translate from mapping 2 index
-				int ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-				int ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+				int ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+				int ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 						
 				
 				//Computes the scores
@@ -299,8 +299,8 @@ public class LogMap2_MappingRanking {
 			
 			if (map.isClassMapping()) {
 			
-				int ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt1()));
-				int ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(map.getIRIStrEnt2()));
+				int ide1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt1()));
+				int ide2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(map.getIRIStrEnt2()));
 				
 				if (mapping_manager.isMappingInConflictWithFixedMappings(ide1, ide2)){					
 					map.setConfidenceMapping(-1.0);					

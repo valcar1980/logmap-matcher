@@ -1902,8 +1902,8 @@ public class LogMap2Core {
 			
 			
 			//Necessary for preccsion and recall or only for GS cleaning
-			index1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(elements[0]));
-			index2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityLabelFromURI(elements[1]));
+			index1=onto_process1.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(elements[0]));
+			index2=onto_process2.getIdentifier4ConceptName(Utilities.getEntityNameFromURI(elements[1]));
 			
 			if (index1>0 && index2>0){	//IN CASE IT DOES NOT EXISTS
 				
