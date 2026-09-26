@@ -148,7 +148,7 @@ public class FetchAndStoreMediatingOntologies {
 		 * Store all ontologies from list of mediating ontologies
 		 */
 		int countOnto = moList.size();
-		System.out.println("There are" + countOnto + "mediating ontologies in the list");
+		System.out.println("There are " + countOnto + " mediating ontologies in the list");
 		System.out.println("Starting Mediating Ontologies fetching step");
 
 		

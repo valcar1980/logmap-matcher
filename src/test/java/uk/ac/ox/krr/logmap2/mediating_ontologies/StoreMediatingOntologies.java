@@ -36,8 +36,16 @@ public class StoreMediatingOntologies {
       
         // checking for end of file
         while (line != null) {
+        	if(line.startsWith("#")) {
+        		System.out.println("Skipping MO " + line + "from list of ontologies.");
+                line = bf.readLine();
+
+        	}
+        	else {
             listOfStrings.add(line);
             line = bf.readLine();
+
+        	}
         }
       
         // closing bufferreader object
