@@ -11,7 +11,10 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import uk.ac.ox.krr.logmap2.GetRepresentativeLabelsSetForMappings;
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
+import uk.ac.ox.krr.logmap2.OntologyLoader;
+import uk.ac.ox.krr.logmap2.bioportal.MediatingOntologyExtractor;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
 
@@ -30,13 +33,18 @@ import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
  */
 public class FetchAndStoreMediatingOntologies {
 
-	private String checkDirForMappingFile(String dirPath) {
-		String filePath = "a";
-		
-		
-		
-		
-		return filePath;
+	private static Set<MappingObjectStr> checkDirForMappingFile(String dirPath) {
+		Set<MappingObjectStr> mappings = Collections.emptySet();
+		File directory = new File(dirPath);
+		File[] listFiles = directory.listFiles();
+		for (File f: listFiles) {
+			if (f.getName().endsWith(".rdf")){
+				MappingsReaderManager s2tMappingReader = new MappingsReaderManager(f.getAbsolutePath(), "RDF");
+				mappings = s2tMappingReader.getMappingObjects();
+				break;
+			}
+		}
+		return mappings;
 	}
 	
 	public static void main(String[] args) {
@@ -50,19 +58,9 @@ public class FetchAndStoreMediatingOntologies {
 		// Expected input
 		String onto1_iri = "file:" + moUtils.sourceOntoPath;
 		String onto2_iri = "file:" + moUtils.targetOntoPath;
-		String s2tFilePath = moUtils.parentPath + "store-source-target/source2target";
+		String s2tFilePath = moUtils.sourceToTargetPath + "source2target";
 		String storeOntoPath = moUtils.localOntoRepoPath;
 		
-		//Set up output
-		String filePath = null;
-		if (moUtils.overrideMOnum == true) {
-		// Conditional input
-			filePath = moUtils.parentPath + "logmap_top" + Integer.toString(moUtils.maxMONum) + "_mediating_ontologies.txt";
-		}else {
-			//TODO
-			System.out.println("Should read deault paramater and provide max number of mediating ontologies here.");
-			filePath = moUtils.parentPath + "logmap_top10_mediating_ontologies.txt";
-		}
 		
 		//Initialisations
 		StoreMediatingOntologies moStorer = new StoreMediatingOntologies();
@@ -70,14 +68,65 @@ public class FetchAndStoreMediatingOntologies {
 		CreateMappingsBetweenTwoOntologies onto_mapper = new CreateMappingsBetweenTwoOntologies();
 		Set<MappingObjectStr>  s2tOnto_mappings = Collections.emptySet();
 		MediatingOntologiesUtils mo_fetcher = new MediatingOntologiesUtils();
+		
+		// Conditional input - list of mediating ontologies
+		String listMOFilePath = null;
+		if (moUtils.overrideMOnum == true) {
+			listMOFilePath = moUtils.parentPath + "logmap_top" + Integer.toString(moUtils.maxMONum) + "_mediating_ontologies.txt";
+		}else {
+			//TODO
+			System.out.println("Should read deault paramater and provide max number of mediating ontologies here.");
+			listMOFilePath = moUtils.parentPath + "logmap_top10_mediating_ontologies.txt";
+		}
+		
+		// If we have a file with the list of mediating ontologies, we can start reading from it already
+		File listFile = new File(listMOFilePath);
+
+		
+		if (listFile.exists() && listFile.isFile()) {
+			System.out.println("Mediating ontologies list already exists at " 
+		+ listMOFilePath + " \n Skipping to fetching ontologies from list");
+			try {
+				moList = moStorer.getOntologyListFromFile(listMOFilePath);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		} else {
+		System.out.println("Mediating ontology list is missing, proceeding to create one.");
+
 
 		// If ontology maps already exist, skip and move to checking whether the list of MO exists
-		boolean SourceTargetMapFileExists = false;
 		//TODO extend to accept any format (txt, tsv, rdf)
-		File s2tMapFile = new File(s2tFilePath + ".rdf");
-		if (s2tMapFile.exists() && s2tMapFile.isFile()) SourceTargetMapFileExists = true;
+		System.out.println("First, we check if we have mappings between source and target.");
+
+		Set<MappingObjectStr> checkS2TMappings = checkDirForMappingFile(moUtils.sourceToTargetPath); 
+		if (checkS2TMappings.size()>0) {
+			System.out.println("Found mappings between source and target, no need to create them.");
+
+			// We need the representative labels to find the mediating ontologies
+			Set<String> s2tRepLabels = Collections.emptySet();
+			try {
+			OntologyLoader loader1 = new OntologyLoader(onto1_iri);
+			OntologyLoader loader2 = new OntologyLoader(onto2_iri);
+			
+			GetRepresentativeLabelsSetForMappings representativeLabelExtractor = 
+					new GetRepresentativeLabelsSetForMappings(
+							loader1.getOWLOntology(), 
+							loader2.getOWLOntology(), 
+							checkS2TMappings);
+			
+			s2tRepLabels = representativeLabelExtractor.getRepresentativeLabels();
+			MediatingOntologyExtractor mo_extract = new MediatingOntologyExtractor(s2tRepLabels);
+			moList = mo_extract.getSelectedMediatingOntologies();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		
-		if (SourceTargetMapFileExists == false)
+		else
 		{ 
 			System.out.println("No mappings found between source and target, running Logmap now");
 			LogMap2_Matcher onto_matcher= onto_mapper.createMappings(onto1_iri, onto2_iri, moUtils.maxMONum);
@@ -87,43 +136,21 @@ public class FetchAndStoreMediatingOntologies {
 			 * Identify suitable mediating ontologies and store their label onto a list
 			 */
 			moList = mo_fetcher.extractMediatingOntologyList(onto_matcher);
-			mo_fetcher.saveListMediatingOntolgies(true, moList, filePath);
-		} else {
-			
-			//TODO load mappings
-			MappingsReaderManager s2tMappingReader = new MappingsReaderManager(s2tFilePath + ".rdf", "RDF");
-			s2tOnto_mappings = s2tMappingReader.getMappingObjects();
-			
 		}
-		// If mediating ontologies files exist, then skip and read the ontologies that need downloading from the file
-		boolean txtListExists = false;
-		File listFile = new File(filePath);
 		
-		if (listFile.exists() && listFile.isFile()) txtListExists = true;
+		// save moList to file
+		mo_fetcher.saveListMediatingOntolgies(moList, listMOFilePath);
 		
-		if (txtListExists == false) {
-		System.out.println("Starting Mediating Ontologies Pipeline");
-		
-		
-		
+	}	
 
 
-		}
-		else {
-			System.out.println("Mediating ontologies list already exists at " + filePath + " \n Skipping to fetching ontologies from list");
-			try {
-				moList = moStorer.getOntologyListFromFile(filePath);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
 		/*
 		 * Store all ontologies from list of mediating ontologies
 		 */
 		int countOnto = moList.size();
 		System.out.println("There are" + countOnto + "mediating ontologies in the list");
-		
+		System.out.println("Starting Mediating Ontologies fetching step");
+
 		
 			int all_counter = 0; // all counts, including failed downloads
 			int success_counter =0; // existing ontologies or successfully downloaded

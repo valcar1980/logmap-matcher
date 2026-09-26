@@ -118,7 +118,7 @@ public class MediatingOntologiesUtils {
 
 	
 	
-	public void saveListMediatingOntolgies(boolean saveList, List<String> selectedMediatingOntologies, 
+	public void saveListMediatingOntolgies(List<String> selectedMediatingOntologies, 
 			String filePath){
 		if (selectedMediatingOntologies.size() < 1) {
 			System.out.println("No mediating ontologies found");
