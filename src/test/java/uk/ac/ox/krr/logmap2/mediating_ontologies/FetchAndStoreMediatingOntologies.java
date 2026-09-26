@@ -2,6 +2,7 @@ package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
+import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
 
 /**
  * Takes a parent folder with a config JSON file, reads the input ontologies and finds the mediating ontologies in Bioportal.
@@ -28,7 +30,14 @@ import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
  */
 public class FetchAndStoreMediatingOntologies {
 
-	
+	private String checkDirForMappingFile(String dirPath) {
+		String filePath = "a";
+		
+		
+		
+		
+		return filePath;
+	}
 	
 	public static void main(String[] args) {
 
@@ -54,30 +63,51 @@ public class FetchAndStoreMediatingOntologies {
 			System.out.println("Should read deault paramater and provide max number of mediating ontologies here.");
 			filePath = moUtils.parentPath + "logmap_top10_mediating_ontologies.txt";
 		}
+		
+		//Initialisations
+		StoreMediatingOntologies moStorer = new StoreMediatingOntologies();
+		List<String> moList = null;
+		CreateMappingsBetweenTwoOntologies onto_mapper = new CreateMappingsBetweenTwoOntologies();
+		Set<MappingObjectStr>  s2tOnto_mappings = Collections.emptySet();
+		MediatingOntologiesUtils mo_fetcher = new MediatingOntologiesUtils();
+
+		// If ontology maps already exist, skip and move to checking whether the list of MO exists
+		boolean SourceTargetMapFileExists = false;
+		//TODO extend to accept any format (txt, tsv, rdf)
+		File s2tMapFile = new File(s2tFilePath + ".rdf");
+		if (s2tMapFile.exists() && s2tMapFile.isFile()) SourceTargetMapFileExists = true;
+		
+		if (SourceTargetMapFileExists == false)
+		{ 
+			System.out.println("No mappings found between source and target, running Logmap now");
+			LogMap2_Matcher onto_matcher= onto_mapper.createMappings(onto1_iri, onto2_iri, moUtils.maxMONum);
+			s2tOnto_mappings = onto_matcher.getLogmap2_Mappings();
+			onto_mapper.saveOntologyMappings(s2tOnto_mappings, s2tFilePath, onto1_iri, onto2_iri);
+			/*
+			 * Identify suitable mediating ontologies and store their label onto a list
+			 */
+			moList = mo_fetcher.extractMediatingOntologyList(onto_matcher);
+			mo_fetcher.saveListMediatingOntolgies(true, moList, filePath);
+		} else {
+			
+			//TODO load mappings
+			MappingsReaderManager s2tMappingReader = new MappingsReaderManager(s2tFilePath + ".rdf", "RDF");
+			s2tOnto_mappings = s2tMappingReader.getMappingObjects();
+			
+		}
+		// If mediating ontologies files exist, then skip and read the ontologies that need downloading from the file
 		boolean txtListExists = false;
 		File listFile = new File(filePath);
 		
 		if (listFile.exists() && listFile.isFile()) txtListExists = true;
 		
-		//Initialisations
-		StoreMediatingOntologies moStorer = new StoreMediatingOntologies();
-		List<String> moList = null;
-		
-		
-		// If mediating ontologies files exist, then skip and read the ontologies that need downloading from the file
-		
 		if (txtListExists == false) {
 		System.out.println("Starting Mediating Ontologies Pipeline");
-		CreateMappingsBetweenTwoOntologies onto_mapper = new CreateMappingsBetweenTwoOntologies();
-		LogMap2_Matcher onto_matcher= onto_mapper.createMappings(onto1_iri, onto2_iri, moUtils.maxMONum);
-		Set<MappingObjectStr>  onto_mappings = onto_matcher.getLogmap2_Mappings();
-		onto_mapper.saveOntologyMappings(onto_mappings, s2tFilePath, onto1_iri, onto2_iri);
-		/*
-		 * Identify suitable mediating ontologies and store their label onto a list
-		 */
-		MediatingOntologiesUtils mo_fetcher = new MediatingOntologiesUtils();
-		moList = mo_fetcher.extractMediatingOntologyList(onto_matcher);
-		mo_fetcher.saveListMediatingOntolgies(true, moList, filePath);
+		
+		
+		
+
+
 		}
 		else {
 			System.out.println("Mediating ontologies list already exists at " + filePath + " \n Skipping to fetching ontologies from list");
