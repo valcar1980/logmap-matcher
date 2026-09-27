@@ -126,10 +126,16 @@ public class LogmapBioLLMResults{
 		f1score = (double)Math.round(f1score*1000d)/1000d;
 		return f1score;
 	}
-	
+		
 	public static void main(String[] args) {
+		
+		MediatingOntologiesUtils configReader = new MediatingOntologiesUtils();
+		configReader.getParentFolder(args);
+		configReader.readConfigJSON();
+		configReader.createSubDirectoriesFromParent(); // in case something is missing, no overwrite should take place
 		//Load the OAEI reference
-		String raMapsFile = "/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/reference.rdf";
+		String raMapsFile = configReader.referenceMapsPath;
+		//TODO call function to read regardless of exstension, currently misplaced checkDirForMappingFile (should go in moUtils)
 		MappingsReaderManager raMapsReader = new MappingsReaderManager(raMapsFile, "RDF");
 		Set<MappingObjectStr> raMappings = Collections.emptySet();
 
@@ -150,7 +156,7 @@ public class LogmapBioLLMResults{
 		
 		
 		// onto1
-		String onto1_iri = "/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/mouse.owl";
+		String onto1_iri = configReader.sourceOntoPath;
 
 		OWLOntology onto1 = null;
 		
@@ -162,7 +168,7 @@ public class LogmapBioLLMResults{
 		}
 
 		//onto2
-		String onto2_iri = "/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/human.owl";
+		String onto2_iri = configReader.targetOntoPath;
 		OWLOntology onto2 = null;
 		
 		
@@ -176,18 +182,18 @@ public class LogmapBioLLMResults{
 		
 		
 		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
-		String parentPath = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/logmapBioLLM/";
+		String parentPath = configReader.resultsLogmapBioLLMPath;
 		// Load the mappings found by Logmap LLM (default and mutual subsumption)
-		String llmDefaultMapsFile = "/home/valentina/Data/OAEI-input/logmap-llm/anatomy/logmap-llm-default/mouse-human.rdf";
-		String llmMutualSubMapsFile = "/home/valentina/Data/OAEI-input/logmap-llm/anatomy/logmap-llm-mutual-subsumption/mouse-human.rdf";
+		String llmDefaultMapsFile = configReader.logmapLLMDefaultPath;
+		String llmMutualSubMapsFile = configReader.logmapLLMMSubPath;
 		MappingsReaderManager llmDefaultMappingReader = new MappingsReaderManager(llmDefaultMapsFile, "RDF");
 		MappingsReaderManager llmMutualSubMappingReader = new MappingsReaderManager(llmMutualSubMapsFile, "RDF");
 		
 		
 		// Load  composed mappings after they have been annotated using LLM (default and mutual subsumption)
 		
-		String composedAnnotatedWithLLMDefaultPath = "/home/valentina/Data/anatomy-composed-llm-annotated/all-composed-minus-llm-default.annotated.tsv";
-		String composedAnnotatedWithLLMMutualSubPath= "/home/valentina/Data/anatomy-composed-llm-annotated/all-composed-minus-llm-mutualsub.annotated.tsv";
+		String composedAnnotatedWithLLMDefaultPath = configReader.annotatedComposedLLMDefaultPath;
+		String composedAnnotatedWithLLMMutualSubPath= configReader.annotatedComposedLLMMSubtPath;
 		
 		// Read only the mappings that were annotated as True
 		

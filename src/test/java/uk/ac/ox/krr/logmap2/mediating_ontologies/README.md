@@ -96,8 +96,19 @@ java -cp logmap-matcher-4.0-tests.jar:logmap-matcher-4.0.jar
           
 ```
 
-This step creates a new sub-directory `store-unique-mappings` which will contain all the txt/tsv files with the new unique mappings produced via mediating ontologies. These are the result of subtracting the set of Logmap direct mappings between source and target, from the set of all mappings obtained using Logmap via the top (available) 10 mediating ontologies.
+This step stores in the folder `store-unique-mappings` all the txt/tsv files with the new unique mappings produced via mediating ontologies. These are the result of subtracting the set of Logmap direct mappings between source and target, from the set of all mappings obtained using Logmap via the top (available) 10 (or more, depending on Parameters.java) mediating ontologies.
 
-### 4. LogmapBioLLMResults
+### 4. Annotation of composed mappings using LLM
 
-This one needs some good refactoring because all the inputs/outputs locations are hard-coded!
+*Currently carried out outside of this pipeline*
+We take the composed mappings and share them so that they can be annotated using the same LLM used for LogmapLLM. 
+
+### 5. LogmapBioLLMResults
+
+(once for LLM default and once for LLM mutual subsumption)
+
+- [ ] Take as input the annotated composed mappings (these are the ones annotated via LLM framework)
+- [ ] Take as input Logmap LLM mappings
+- [ ] Filter only the annotated composed mappings that are annotated as "true"
+- [ ] **Add these "true" composed mappings to LogmapLLM maps. This is Logmap BIO LLM**
+- [ ] Then compare this to reference (RA)

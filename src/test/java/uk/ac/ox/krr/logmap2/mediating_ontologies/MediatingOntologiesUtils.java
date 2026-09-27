@@ -20,10 +20,16 @@ public class MediatingOntologiesUtils {
 	public String sourceOntoPath;
 	public String targetOntoPath;
 	public String localOntoRepoPath;
+	public String referenceMapsPath;
 	public String sourceToTargetPath;
 	public String simpleMappingsPath;
 	public String composedMappingsPath;
 	public String newUniqueMappingsPath;
+	public String resultsLogmapBioLLMPath;
+	public String logmapLLMDefaultPath;
+	public String logmapLLMMSubPath;
+	public String annotatedComposedLLMDefaultPath;
+	public String annotatedComposedLLMMSubtPath;
 	public Boolean overrideMOnum;
 	public Integer maxMONum;
 	
@@ -72,6 +78,47 @@ public class MediatingOntologiesUtils {
 	        sourceOntoPath = jsonNode.get("sourceOntologyFullPath").asText();
 	        targetOntoPath = jsonNode.get("targetOntologyFullPath").asText();
 	        localOntoRepoPath = jsonNode.get("repoMediatingOntologiesFullPath").asText();
+	        
+	        // Some optionals
+	        try {
+	        referenceMapsPath = jsonNode.get("referenceMappingsFullPath").asText();
+	        } catch (Exception e) {
+	        	System.out.println("Reading config, no path to reference mappins provided, setting to null.");
+	        	referenceMapsPath = null;
+	        }
+	        
+	        try {
+		        logmapLLMDefaultPath = jsonNode.get("logmapLLMDefaultPath").asText();
+		        } catch (Exception e) {
+		        	System.out.println("Reading config, no path to logmap LLM results (Default), setting to null.");
+		        	logmapLLMDefaultPath = null;
+		        }
+	        
+	        
+	        try {
+	        	logmapLLMMSubPath = jsonNode.get("logmapLLMMSubPath").asText();
+		        } catch (Exception e) {
+		        	System.out.println("Reading config, no path to logmap LLM results (Mutual Subsumption), setting to null.");
+		        	logmapLLMMSubPath = null;
+		        }
+	        
+	        // Composed mappings annotated via LLM
+	        try {
+	        	annotatedComposedLLMDefaultPath = jsonNode.get("annotatedComposedLLMDefaultPath").asText();
+		        } catch (Exception e) {
+		        	System.out.println("Reading config, no path to llm(default)-annotated composed mappings, setting to null.");
+		        	annotatedComposedLLMDefaultPath = null;
+		        }
+	        
+	        
+	        try {
+	        	annotatedComposedLLMMSubtPath = jsonNode.get("annotatedComposedLLMMSubtPath").asText();
+		        } catch (Exception e) {
+		        	System.out.println("Reading config, no path to llm(mutual subsumption)-annotated composed mappings, setting to null.");
+		        	annotatedComposedLLMMSubtPath = null;
+		        }
+	        
+	        // Mediating Ontologies settings
 	        overrideMOnum = jsonNode.get("overrideMaxMediatingOntologies").asBoolean();
 	        if (overrideMOnum == true) maxMONum = jsonNode.get("maxMediatingOntologies").asInt();
 	        
@@ -169,6 +216,9 @@ public class MediatingOntologiesUtils {
 		this.newUniqueMappingsPath = parentPath + "store-unique-mappings/";
 		createSubDirectory(this.newUniqueMappingsPath);
 		
+		this.resultsLogmapBioLLMPath = parentPath + "store-logmapBioLLM-results";
+		createSubDirectory(this.resultsLogmapBioLLMPath);
+
 
 
 	}
