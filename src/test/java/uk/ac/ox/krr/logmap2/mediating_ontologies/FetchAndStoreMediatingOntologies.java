@@ -33,7 +33,7 @@ import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
  */
 public class FetchAndStoreMediatingOntologies {
 
-	private static Set<MappingObjectStr> checkDirForMappingFile(String dirPath) {
+	protected static Set<MappingObjectStr> checkDirForMappingFile(String dirPath) {
 		Set<MappingObjectStr> mappings = Collections.emptySet();
 		File directory = new File(dirPath);
 		File[] listFiles = directory.listFiles();

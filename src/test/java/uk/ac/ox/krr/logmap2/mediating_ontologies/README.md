@@ -13,6 +13,11 @@ The config file needs to be called config.json and is stored inside your parent 
   "sourceOntologyFullPath": "<full path to source ontology> example1.owl",
   "targetOntologyFullPath": "<full path to target ontology> example2.owl",
   "repoMediatingOntologiesFullPath": "<full path to folder where to check for and store mediating ontologies>",
+  "referenceMappingsFullPath": <full path to reference mappings> (optional, leave blank otherwise),
+  "logmapLLMDefaultPath" : <full path to logmapLLM mappings (default setting)> (optional, leave blank otherwise),
+  "logmapLLMMSubPath":<full path to logmapLLM mappings (mutual subsumption setting)> (optional, leave blank otherwise),
+  "annotatedComposedLLMDefaultPath" :<full path to annotated composed mappings (with LLM default setting)> (optional, leave blank otherwise),
+  "annotatedComposedLLMMSubtPath":<full path to annotated composed mappings (with LLM mutual subsumption setting)> (optional, leave blank otherwise),
   "overrideMaxMediatingOntologies" : "true",
   "maxMediatingOntologies": 12
 }
@@ -95,8 +100,15 @@ java -cp logmap-matcher-4.0-tests.jar:logmap-matcher-4.0.jar
           uk.ac.ox.krr.logmap2.mediating_ontologies.ProcessComposedMappings <parent folder>
           
 ```
-
+*As intermediate steps*
 This step stores in the folder `store-unique-mappings` all the txt/tsv files with the new unique mappings produced via mediating ontologies. These are the result of subtracting the set of Logmap direct mappings between source and target, from the set of all mappings obtained using Logmap via the top (available) 10 (or more, depending on Parameters.java) mediating ontologies.
+
+As **output for this step**, which is then passed into the next step of annotation, the class produces:
+- `all-composed.txt` contains all the composed mappings obtained via the top10 mediating ontologies.
+
+- `all-composed-minus-llm-default.txt` is the set of composed mappings after removing all the mappings produced by Logmap-llm in default setting.
+
+- `all-composed-minus-llm-mutualsub.txt` is the set of composed mappings after removing all the mappings produced by Logmap-llm with mutual subsumption.
 
 ### 4. Annotation of composed mappings using LLM
 
