@@ -202,8 +202,11 @@ public class CreateComposedMappings{
 		compMapper.setAllPathsFromParent(configReader.parentPath, configReader.localOntoRepoPath);
 		compMapper.setOnto1_IRI(configReader.sourceOntoPath);
 		compMapper.setOnto2_IRI(configReader.targetOntoPath);
-		String o1Name = compMapper.getOntologyNameFromFile(compMapper.onto1_iri);
-		String o2Name = compMapper.getOntologyNameFromFile(compMapper.onto2_iri);
+		String o1Name = compMapper.getOntologyNameFromFile(configReader.sourceOntoPath);
+		String o2Name = compMapper.getOntologyNameFromFile(configReader.targetOntoPath);
+		// The following only works in linux
+		//String o1Name = compMapper.getOntologyNameFromFile(compMapper.onto1_iri);
+		//String o2Name = compMapper.getOntologyNameFromFile(compMapper.onto2_iri);
 
 		/*
 		 * Set up the ontology manager
