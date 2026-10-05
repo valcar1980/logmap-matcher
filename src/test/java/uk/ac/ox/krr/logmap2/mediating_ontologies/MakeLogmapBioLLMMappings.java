@@ -1,9 +1,7 @@
 /*
- * Where we do the work described in https://app.zenhub.com/workspaces/test-vava-6a8853824b10b0001cb595a3/issues/zh/18
- * That is, combine annotated composed mappings (from mediating ontologies) with mappings obtained by LogmapLLM to produce
+ * Where we do the work described that combines annotated composed mappings (from mediating ontologies) with mappings obtained by LogmapLLM to produce
  * LogmapBioLLM.
  */
-
 
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
@@ -28,105 +26,67 @@ import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
 
 //import uk.ac.ox.krr.logmap2.oaei.reader.FlatAlignmentReader;
 
-public class LogmapBioLLMResults{
-	
-	public void setExperimentDetails(){
-		
-		// Loop through OAEI 2025
-		// Loop through OAEI 2026
-	}
-	
+public class MakeLogmapBioLLMMappings {
+
 	/**
-	 * Load mappings from annotated TSV file
-	 * Each row has tab-separated elements and it is expected to have the following structure:
-	 * Source,Target,Prediction,Confidence
-	 * For example:
-	 * http://human.owl #NCI_C49191 	http://mouse.owl#MA_0000702		=	0.47 	CLS		False
+	 * Load mappings from annotated TSV file Each row has tab-separated elements and
+	 * it is expected to have the following structure:
+	 * Source,Target,Prediction,Confidence For example: http://human.owl #NCI_C49191
+	 * http://mouse.owl#MA_0000702 = 0.47 CLS False
+	 * 
 	 * @param fullPath
 	 */
 	public static Set<MappingObjectStr> readAnnotatedMappingsFromTSV(String fullPath) {
-		
+
 		Set<MappingObjectStr> mapSet = new HashSet<MappingObjectStr>();
 		try {
-			
+
 			File tsv = new File(fullPath);
 			ReadFile reader = new ReadFile(tsv);
-				
+
 			int countTrue = 0;
 			int countFalse = 0;
 			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
 				String[] lineElements;
-				//System.out.println(line);
-				if (line.startsWith("#") || !line.startsWith("http")){ //skip comments and header row
+				// System.out.println(line);
+				if (line.startsWith("#") || !line.startsWith("http")) { // skip comments and header row
 					continue;
 				}
-				
-				if (line.indexOf("\t")<0){
+
+				if (line.indexOf("\t") < 0) {
 					continue;
 				}
-				
-				lineElements=line.split("\t");
-					
-				//System.out.println(lineElements[0] + "  " + lineElements[1]  + "  " + lineElements[5]);
-				
+
+				lineElements = line.split("\t");
+
+				// System.out.println(lineElements[0] + " " + lineElements[1] + " " +
+				// lineElements[5]);
+
 				if (Boolean.parseBoolean(lineElements[5].toLowerCase())) {
-					//System.out.println("Found some truth!");
-					//TODO it might not be equivalence, I need to check elements[2]
-					//TODO it might not be a CLS equivalence, I need to check and remove 0
-					MappingObjectStr formattedMap = new MappingObjectStr(lineElements[0],
-							lineElements[1], Double.valueOf(lineElements[3]), MappingObjectStr.EQ,0);
-				
+					// System.out.println("Found some truth!");
+					// TODO it might not be equivalence, I need to check elements[2]
+					// TODO it might not be a CLS equivalence, I need to check and remove 0
+					MappingObjectStr formattedMap = new MappingObjectStr(lineElements[0], lineElements[1],
+							Double.valueOf(lineElements[3]), MappingObjectStr.EQ, 0);
+
 					mapSet.add(formattedMap);
-						
+
 					countTrue++;
-				}
-				else {
+				} else {
 					countFalse++;
 				}
 			}
-			
+
 			reader.closeBuffer();
 			System.out.println("Num mapping in oracle: " + countTrue);
 			System.out.println("Num mapping NOT in oracle: " + countFalse);
-		} 
-		catch (FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 		return mapSet;
-		
-	}
-	
-	public static double[] computePrecisionAndRecall(Set<MappingObjectStr> referenceMappings, Set<MappingObjectStr> testMappings ) {
-		Set<MappingObjectStr> intersection = new HashSet<MappingObjectStr>(referenceMappings);
-		intersection.retainAll(testMappings);
-		System.out.println("TP:" + intersection.size() + "\t TP + FP: " + testMappings.size() +
-		"\tTP + FN:" + referenceMappings.size());
-		
-		double precision;
-		double recall;
-		
-		precision = ((double) intersection.size())/ ((double) testMappings.size());
-		System.out.println(precision);
 
-		recall = ((double) intersection.size()) /((double) referenceMappings.size());
-		System.out.println(recall);
+	}
 
-		
-		double[] stats = new double[2];
-		stats[0] = (double)Math.round(precision*1000d)/1000d;
-		stats[1] = (double)Math.round(recall*1000d)/1000d;
-		
-		return stats;
-		
-	}
-	
-	public static double computeF1score(double precision, double recall) {
-		
-		double f1score = 2* (precision*recall)/(precision + recall);
-		f1score = (double)Math.round(f1score*1000d)/1000d;
-		return f1score;
-	}
-		
 	public static void main(String[] args) {
 		
 		MediatingOntologiesUtils configReader = new MediatingOntologiesUtils();
@@ -223,7 +183,7 @@ public class LogmapBioLLMResults{
 			e.printStackTrace();
 		}
 		
-		System.out.println("\n\n**** LogmapLLM ****\n\n");
+		/*System.out.println("\n\n**** LogmapLLM ****\n\n");
 
 		// Precision, Recall, F1
 		double[] statsLLMDefault = computePrecisionAndRecall(raMappings,llmDefaultMappings);
@@ -281,7 +241,7 @@ public class LogmapBioLLMResults{
 		
 		System.out.println("\n\n**** LogmapBioLLM with repair****\n\n");
 		
-		/** Default **/
+		*//** Default **//*
 		
 		//fixed_mappings are llmDefaultMappings
 		// mappings2review are llmTrueComposedMapsWithLLMDefault
@@ -299,7 +259,7 @@ public class LogmapBioLLMResults{
 		String LogmapLLmBio_default_rName = parentPath + "logmapBioLLMDefaultResults_repaired";
 		moUtils.saveOntologyMappings(LogmapBioLLM_default_r, LogmapLLmBio_default_rName, onto1_iri, onto2_iri);
 		
-		/** Mutual Subsumption **/
+		*//** Mutual Subsumption **//*
 		
 		//fixed_mappings are llmMutualSubMappings
 		// mappings2review are llmTrueComposedMapsWithLLMDefault
@@ -315,5 +275,11 @@ public class LogmapBioLLMResults{
 				"\tF1:" + f1RepMSub + "\n\n");
 		String LogmapLLmBio_msub_rName = parentPath + "logmapBioLLMMSubResults_repaired";
 		moUtils.saveOntologyMappings(LogmapBioLLM_msub_r, LogmapLLmBio_msub_rName, onto1_iri, onto2_iri);
-	}
+	
+*/}
 }
+	
+	
+	
+	
+	

@@ -4,6 +4,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
@@ -290,7 +293,133 @@ public class MediatingOntologiesUtils {
 		}
 	}
 	
-	public void main(String[] args) {
+	/*
+	 * 
+	 * Function to compute all statistics
+	 * 
+	 * 
+	 */
+	
+
+	public static Hashtable<String, Integer> countTrueFalsePosAndFalseNeg(Set<MappingObjectStr> referenceMappings, Set<MappingObjectStr> testMappings) {
+		
+		int truePos;
+		int falsePos;
+		int falseNeg;
+		Set<MappingObjectStr> intersection = new HashSet<MappingObjectStr>(referenceMappings);
+		intersection.retainAll(testMappings);
+		truePos = intersection.size();
+		falsePos = testMappings.size() - truePos;
+		falseNeg = referenceMappings.size()-truePos;
+		
+		Hashtable<String, Integer> countStats = new Hashtable<>();
+		countStats.put("TP", truePos);
+		countStats.put("FP", falsePos);
+		countStats.put("FN", falseNeg);
+
+		
+		return countStats;
+	}
+	
+	
+	public static double computePrecisionFromSets(Set<MappingObjectStr> referenceMappings, Set<MappingObjectStr> testMappings ) {
+		double precision;
+		Set<MappingObjectStr> intersection = new HashSet<MappingObjectStr>(referenceMappings);
+		
+		intersection.retainAll(testMappings);
+
+		if (intersection.isEmpty()) {
+			System.out.println("Intersection is empty, cannot compute Precision, setting to zero by default");
+			precision = 0;
+		}
+		else {
+		
+		precision = ((double) intersection.size())/ ((double) testMappings.size());
+		//System.out.println(precision);
+		}
+		
+		return (double)Math.round(precision*1000d)/1000d;
+		
+	}
+	
+	public static double computePrecisionFromCounts(int truePos, int falsePos) {
+		double precision;
+		
+		if (truePos + falsePos > 0) {
+			precision = ((double)truePos) / ((double)(truePos + falsePos));
+		}
+		else {
+			System.out.println("Cannot compute Precision, division undefined (TP + FP is zero), setting to zero by default");
+			precision = 0;
+			
+		}
+		return (double)Math.round(precision*1000d)/1000d;
+	}
+	
+	
+	public static double computeRecallFromSets(Set<MappingObjectStr> referenceMappings, Set<MappingObjectStr> testMappings) {
+		
+		double recall;
+		Set<MappingObjectStr> intersection = new HashSet<MappingObjectStr>(referenceMappings);
+		
+		intersection.retainAll(testMappings);
+		
+		if (intersection.isEmpty()) {
+			System.out.println("Intersection is empty, cannot compute Recall, setting to zero by default");
+			recall = 0;
+		}
+		else {
+		recall = ((double) intersection.size()) /((double) referenceMappings.size());
+		//System.out.println(recall);
+		}
+ 
+		return (double)Math.round(recall*1000d)/1000d;
+		
+		
+	}
+	
+	
+	public static Double computeRecallFromCounts(int truePos, int falseNeg) {
+		Double recall;
+		
+		if (truePos + falseNeg > 0) {
+			recall = ((double)truePos) / ((double)(truePos + falseNeg));
+		}
+		else {
+			System.out.println("Cannot compute Recall, division undefined (TP + FN is zero), setting to zero by default");
+			recall = null;
+			
+		}
+		return (double)Math.round(recall*1000d)/1000d;
+	}
+	
+	
+	public static double computeF1score(double precision, double recall) {
+		double f1score;
+		if ((precision + recall)==0) {
+			System.out.println("Both precision and recall are zero, cannot compute F1, setting it to zero by default");
+			f1score = 0;
+		}
+		f1score = 2* (precision*recall)/(precision + recall);
+
+		return (double)Math.round(f1score*1000d)/1000d;
+	}
+	
+	
+	
+	public static void main(String[] args) {
+		
+		System.out.println("\n\nYou have chosen to run a utils class, displaying all available methods\n\n");
+		try {
+			Class<MediatingOntologiesUtils> thisClass = MediatingOntologiesUtils.class;
+            Method[] methods = thisClass.getDeclaredMethods();
+
+            for (int i = 0; i < methods.length; i++) {
+                System.out.println("\n * " + methods[i].toString());
+            }
+        } catch (Throwable e) {
+            System.err.println(e);
+        }
 		
 	}
 	
