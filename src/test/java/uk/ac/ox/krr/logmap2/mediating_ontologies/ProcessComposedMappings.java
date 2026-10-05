@@ -247,6 +247,7 @@ public class ProcessComposedMappings{
 			//File file = new File(moUtils.parentPath + "Statistics-" + timestamp +".csv");
 			File file = new File(moUtils.parentPath + "preAnnotationStatistics.csv");
 			// Create a File and append if it already exists.
+			//TODO do not append if file already exists, instead create a new one
 			Writer writer = new FileWriter(file, true);
 			//Reader reader = new FileReader(file);
 			String eol = System.getProperty("line.separator");
