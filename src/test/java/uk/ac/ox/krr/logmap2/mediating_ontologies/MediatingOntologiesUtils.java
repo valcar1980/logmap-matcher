@@ -71,6 +71,12 @@ public class MediatingOntologiesUtils {
 	 */
 	
 	
+	/**
+	 * Reads mappings that have been annotated using logmap-LLM, therefore it provides count of how
+	 * many mappings were approved by the oracle and how many were rejected
+	 * @param fullPath
+	 * @return
+	 */
 	public Set<MappingObjectStr> readAnnotatedMappingsFromTSV(String fullPath) {
 
 		Set<MappingObjectStr> mapSet = new HashSet<MappingObjectStr>();
@@ -213,7 +219,7 @@ public class MediatingOntologiesUtils {
 	 * @return mappings Set<MappingObjectStr> 
 	 */
 	
-	public static Set<MappingObjectStr> readMappingsFromFile(String filePath) {
+	public Set<MappingObjectStr> readMappingsFromFile(String filePath) {
 		Set<MappingObjectStr> mappings = Collections.emptySet();
 		File file = new File(filePath);
 		
@@ -401,7 +407,7 @@ public class MediatingOntologiesUtils {
 	 */
 	
 
-	public static Hashtable<String, Integer> countTrueFalsePosAndFalseNeg(Set<MappingObjectStr> referenceMappings, Set<MappingObjectStr> testMappings) {
+	public Hashtable<String, Integer> countTrueFalsePosAndFalseNeg(Set<MappingObjectStr> referenceMappings, Set<MappingObjectStr> testMappings) {
 		
 		int truePos;
 		int falsePos;
@@ -422,7 +428,7 @@ public class MediatingOntologiesUtils {
 	}
 	
 	
-	public static double computePrecisionFromSets(Set<MappingObjectStr> referenceMappings, Set<MappingObjectStr> testMappings ) {
+	public double computePrecisionFromSets(Set<MappingObjectStr> referenceMappings, Set<MappingObjectStr> testMappings ) {
 		double precision;
 		Set<MappingObjectStr> intersection = new HashSet<MappingObjectStr>(referenceMappings);
 		
@@ -442,7 +448,7 @@ public class MediatingOntologiesUtils {
 		
 	}
 	
-	public static double computePrecisionFromCounts(int truePos, int falsePos) {
+	public double computePrecisionFromCounts(int truePos, int falsePos) {
 		double precision;
 		
 		if (truePos + falsePos > 0) {
@@ -457,7 +463,7 @@ public class MediatingOntologiesUtils {
 	}
 	
 	
-	public static double computeRecallFromSets(Set<MappingObjectStr> referenceMappings, Set<MappingObjectStr> testMappings) {
+	public double computeRecallFromSets(Set<MappingObjectStr> referenceMappings, Set<MappingObjectStr> testMappings) {
 		
 		double recall;
 		Set<MappingObjectStr> intersection = new HashSet<MappingObjectStr>(referenceMappings);
@@ -479,7 +485,7 @@ public class MediatingOntologiesUtils {
 	}
 	
 	
-	public static Double computeRecallFromCounts(int truePos, int falseNeg) {
+	public Double computeRecallFromCounts(int truePos, int falseNeg) {
 		Double recall;
 		
 		if (truePos + falseNeg > 0) {
@@ -494,7 +500,7 @@ public class MediatingOntologiesUtils {
 	}
 	
 	
-	public static double computeF1score(double precision, double recall) {
+	public double computeF1score(double precision, double recall) {
 		double f1score;
 		if ((precision + recall)==0) {
 			System.out.println("Both precision and recall are zero, cannot compute F1, setting it to zero by default");
