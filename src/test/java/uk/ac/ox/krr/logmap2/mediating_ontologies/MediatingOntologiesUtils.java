@@ -42,6 +42,7 @@ public class MediatingOntologiesUtils {
 	public String logmapLLMMSubPath;
 	public String annotatedComposedLLMDefaultPath;
 	public String annotatedComposedLLMMSubtPath;
+	public String listMediatingOntologiesPath;
 	public Boolean overrideMOnum;
 	public Integer maxMONum;
 	
@@ -234,6 +235,27 @@ public class MediatingOntologiesUtils {
 		System.out.println(jsonPath);
 	}
 	}
+	
+	
+	public void readListMediatingOntologiesPathFromJSON() {
+		String jsonPath = parentPath + "config.json";
+		File jsonConfig = new File(jsonPath);
+		try {
+		if (jsonConfig.exists()==false) {
+			System.out.println("Couldn't find config JSON in parent folder " + jsonPath);
+			return;
+		} else {
+			
+			System.out.println("Found config JSON in parent folder " + jsonPath);
+			ObjectMapper objectMapper = new ObjectMapper();
+	        JsonNode jsonNode = objectMapper.readTree(jsonConfig);
+	        listMediatingOntologiesPath = jsonNode.get("listMediatingOntologiesPath").asText();
+		}
+	}catch(Exception e) {
+		e.printStackTrace();
+		listMediatingOntologiesPath = null;
+	}
+		}
 	
 	
 	/**
