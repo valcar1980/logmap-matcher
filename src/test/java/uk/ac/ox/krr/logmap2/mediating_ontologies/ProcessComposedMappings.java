@@ -8,19 +8,14 @@
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Reader;
 import java.io.Writer;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 
@@ -193,12 +188,7 @@ public class ProcessComposedMappings{
 
 		String moMappingsPath = moUtils.composedMappingsPath;
 		String newMappingsPath = moUtils.newUniqueMappingsPath;
-		//String sourceTargetMappingsFile =moUtils.sourceToTargetPath + "source2target.txt";
-		System.out.println("Location of Logmap mappings" + moUtils.sourceToTargetPath);
-		
-		// TODO add to the utils
-		//String llmDefaultMapsFile = "/home/valentina/Data/OAEI-input/logmap-llm/anatomy/logmap-llm-default/mouse-human.rdf";
-		//String llmMutualSubMapsFile = "/home/valentina/Data/OAEI-input/logmap-llm/anatomy/logmap-llm-mutual-subsumption/mouse-human.rdf";
+
 		String llmDefaultMapsFile = moUtils.logmapLLMDefaultPath;
 		String llmMutualSubMapsFile = moUtils.logmapLLMMSubPath;
 		String storeDiffLlm = moUtils.parentPath + "composed-mappings-for-llm-annotation/";
@@ -207,7 +197,12 @@ public class ProcessComposedMappings{
 
 		
 		try {
-			Set<MappingObjectStr> mapSource2Target = moUtils.readMappingsFromFile(moUtils.sourceToTargetPath); 
+			System.out.println("I am here");
+			// readFromJSON = false, it gets file from default folder store-source-target 
+			moUtils.getSource2TargetLogmapMappings(false);
+			System.out.println(moUtils.source2targetLogmapMappingsPath);
+			Set<MappingObjectStr> mapSource2Target = moUtils.readMappingsFromFile(moUtils.source2targetLogmapMappingsPath); 
+			System.out.println("I am here 2");
 			// We now try and get the mappings no matter the file and format -only assume there is only one file in there though.
 			// If it doesn't work, uncomment the two below (and rename file to source2target.txt
 			//FlatAlignmentReader mappingReader = new FlatAlignmentReader(sourceTargetMappingsFile);

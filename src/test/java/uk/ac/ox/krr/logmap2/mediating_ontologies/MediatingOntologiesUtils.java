@@ -33,7 +33,8 @@ public class MediatingOntologiesUtils {
 	public String targetOntoPath;
 	public String localOntoRepoPath;
 	public String referenceMapsPath;
-	public String sourceToTargetPath;
+	public String sourceToTargetDirPath;
+	public String source2targetLogmapMappingsPath;
 	public String simpleMappingsPath;
 	public String composedMappingsPath;
 	public String newUniqueMappingsPath;
@@ -237,6 +238,48 @@ public class MediatingOntologiesUtils {
 	}
 	
 	
+	public void getSource2TargetLogmapMappings(Boolean readFromJSON) {
+		//if the file is provided in config, we read it from there, otherwise, we look for default
+		if(readFromJSON==true) {
+		String jsonPath = parentPath + "config.json";
+		File jsonConfig = new File(jsonPath);
+		try {
+		if (jsonConfig.exists()==false) {
+			System.out.println("Couldn't find config JSON in parent folder " + jsonPath);
+			return;
+		} else {
+			
+			System.out.println("Found config JSON in parent folder " + jsonPath);
+			ObjectMapper objectMapper = new ObjectMapper();
+	        JsonNode jsonNode = objectMapper.readTree(jsonConfig);
+	        source2targetLogmapMappingsPath = jsonNode.get("source2targetLogmapMappingsPath").asText();
+		}
+	}catch(Exception e) {
+		e.printStackTrace();
+		source2targetLogmapMappingsPath = null;
+	}
+		
+		} else {
+			
+			System.out.println("Looking for source-target mappings in default store-source-target/ folder");
+			try {
+				
+				source2targetLogmapMappingsPath = new File(sourceToTargetDirPath, "source2target.txt").toString();
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+				source2targetLogmapMappingsPath = null;
+				
+			}
+			
+		}
+		
+		
+		
+		
+	}
+	
+	
 	public void readListMediatingOntologiesPathFromJSON() {
 		String jsonPath = parentPath + "config.json";
 		File jsonConfig = new File(jsonPath);
@@ -358,8 +401,8 @@ public class MediatingOntologiesUtils {
 	}
 	public void createSubDirectoriesFromParent() {
 				
-		this.sourceToTargetPath = parentPath + "store-source-target/";
-		createSubDirectory(this.sourceToTargetPath);
+		this.sourceToTargetDirPath = parentPath + "store-source-target/";
+		createSubDirectory(this.sourceToTargetDirPath);
 			
 		this.simpleMappingsPath = parentPath + "store-simple-mappings/";
 		createSubDirectory(this.simpleMappingsPath);
