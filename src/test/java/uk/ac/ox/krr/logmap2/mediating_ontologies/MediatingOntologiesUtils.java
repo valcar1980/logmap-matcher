@@ -2,9 +2,11 @@ package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -16,7 +18,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
 import uk.ac.ox.krr.logmap2.bioportal.MediatingOntologyExtractor;
 import uk.ac.ox.krr.logmap2.io.OutPutFilesManager;
+import uk.ac.ox.krr.logmap2.io.ReadFile;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
+import uk.ac.ox.krr.logmap2.oaei.reader.FlatAlignmentReader;
+import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
 
 public class MediatingOntologiesUtils {
 	public String parentPath;
@@ -64,6 +69,61 @@ public class MediatingOntologiesUtils {
 	/*
 	 * Load from file
 	 */
+	
+	
+	public Set<MappingObjectStr> readAnnotatedMappingsFromTSV(String fullPath) {
+
+		Set<MappingObjectStr> mapSet = new HashSet<MappingObjectStr>();
+		try {
+
+			File tsv = new File(fullPath);
+			ReadFile reader = new ReadFile(tsv);
+
+			int countTrue = 0;
+			int countFalse = 0;
+			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+				String[] lineElements;
+				// System.out.println(line);
+				if (line.startsWith("#") || !line.startsWith("http")) { // skip comments and header row
+					continue;
+				}
+
+				if (line.indexOf("\t") < 0) {
+					continue;
+				}
+
+				lineElements = line.split("\t");
+
+				// System.out.println(lineElements[0] + " " + lineElements[1] + " " +
+				// lineElements[5]);
+
+				if (Boolean.parseBoolean(lineElements[5].toLowerCase())) {
+					// System.out.println("Found some truth!");
+					// TODO it might not be equivalence, I need to check elements[2]
+					// TODO it might not be a CLS equivalence, I need to check and remove 0
+					MappingObjectStr formattedMap = new MappingObjectStr(lineElements[0], lineElements[1],
+							Double.valueOf(lineElements[3]), MappingObjectStr.EQ, 0);
+
+					mapSet.add(formattedMap);
+
+					countTrue++;
+				} else {
+					countFalse++;
+				}
+			}
+
+			reader.closeBuffer();
+			System.out.println("Num mapping in oracle: " + countTrue);
+			System.out.println("Num mapping NOT in oracle: " + countFalse);
+		} catch (FileNotFoundException e) {
+			System.out.println("Error reading file " + fullPath + " mapping set to null");
+			mapSet = null;
+			e.printStackTrace();
+		}
+		return mapSet;
+
+	}
+
 	
 	public void readConfigJSON() {
 		String jsonPath = parentPath + "config.json";
@@ -145,6 +205,46 @@ public class MediatingOntologiesUtils {
 		System.out.println(jsonPath);
 	}
 	}
+	
+	
+	/**
+	 * Given the full path to a mapping file, it can read it if it's in txt, rdf or tsv format.
+	 * @param filePath String
+	 * @return mappings Set<MappingObjectStr> 
+	 */
+	
+	public static Set<MappingObjectStr> readMappingsFromFile(String filePath) {
+		Set<MappingObjectStr> mappings = Collections.emptySet();
+		File file = new File(filePath);
+		
+		if (file.exists() == false || file.isDirectory() == true) {
+			System.out.println(
+					"Incorrect filepath for mappings, please ensure it's a full path to file. Given " + filePath);
+			return null;
+		}
+
+		if (file.getName().endsWith(".rdf")) {
+			MappingsReaderManager s2tMappingReader = new MappingsReaderManager(filePath, "RDF");
+			mappings = s2tMappingReader.getMappingObjects();
+		}
+
+		if (file.getName().endsWith(".tsv")) {
+			MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
+			mappings = moUtils.readAnnotatedMappingsFromTSV(filePath);
+		}
+		if (file.getName().endsWith(".txt")) {
+			try {
+			FlatAlignmentReader txtReader = new FlatAlignmentReader(filePath);
+			mappings = txtReader.getMappingObjects();}
+			catch(Exception e){
+				System.out.println("Failed to load mappings from" + filePath + " . Mappings set to null");
+				mappings = null;
+			}
+		}
+
+		return mappings;
+	}
+	
 	
 	
 	/**
