@@ -33,19 +33,6 @@ import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
  */
 public class FetchAndStoreMediatingOntologies {
 
-	protected static Set<MappingObjectStr> checkDirForMappingFile(String dirPath) {
-		Set<MappingObjectStr> mappings = Collections.emptySet();
-		File directory = new File(dirPath);
-		File[] listFiles = directory.listFiles();
-		for (File f: listFiles) {
-			if (f.getName().endsWith(".rdf")){
-				MappingsReaderManager s2tMappingReader = new MappingsReaderManager(f.getAbsolutePath(), "RDF");
-				mappings = s2tMappingReader.getMappingObjects();
-				break;
-			}
-		}
-		return mappings;
-	}
 	
 	public static void main(String[] args) {
 
@@ -98,10 +85,9 @@ public class FetchAndStoreMediatingOntologies {
 
 
 		// If ontology maps already exist, skip and move to checking whether the list of MO exists
-		//TODO extend to accept any format (txt, tsv, rdf)
 		System.out.println("First, we check if we have mappings between source and target.");
-
-		Set<MappingObjectStr> checkS2TMappings = checkDirForMappingFile(moUtils.sourceToTargetPath); 
+		//TODO can we check without loading the whole file?
+		Set<MappingObjectStr> checkS2TMappings = moUtils.readMappingsFromFile(moUtils.sourceToTargetPath); 
 		if (checkS2TMappings.size()>0) {
 			System.out.println("Found mappings between source and target, no need to create them.");
 

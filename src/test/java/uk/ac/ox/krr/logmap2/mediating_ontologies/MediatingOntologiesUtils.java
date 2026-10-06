@@ -6,7 +6,11 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -33,7 +37,7 @@ public class MediatingOntologiesUtils {
 	public String simpleMappingsPath;
 	public String composedMappingsPath;
 	public String newUniqueMappingsPath;
-	public String resultsLogmapBioLLMPath;
+	public String LogmapBioLLMMappingsPath;
 	public String logmapLLMDefaultPath;
 	public String logmapLLMMSubPath;
 	public String annotatedComposedLLMDefaultPath;
@@ -74,10 +78,14 @@ public class MediatingOntologiesUtils {
 	/**
 	 * Reads mappings that have been annotated using logmap-LLM, therefore it provides count of how
 	 * many mappings were approved by the oracle and how many were rejected
+	 * Each row has tab-separated elements and is expected to have the following structure:
+	 * Source,Target,Prediction,Confidence For example: http://human.owl #NCI_C49191
+	 * http://mouse.owl#MA_0000702 = 0.47 CLS False
 	 * @param fullPath
+	 * @param readOption String There are two options "onlyTrue" (extracts only mappings labelled as true) and "allMappings"
 	 * @return
 	 */
-	public Set<MappingObjectStr> readAnnotatedMappingsFromTSV(String fullPath) {
+	public Set<MappingObjectStr> readAnnotatedMappingsFromTSV(String fullPath, String readOption) {
 
 		Set<MappingObjectStr> mapSet = new HashSet<MappingObjectStr>();
 		try {
@@ -100,21 +108,36 @@ public class MediatingOntologiesUtils {
 
 				lineElements = line.split("\t");
 
-				// System.out.println(lineElements[0] + " " + lineElements[1] + " " +
-				// lineElements[5]);
+				/*
+				 * Two options, retrieve only true mappings or retrieve all of them
+				 */
+				
+				if (readOption.equals("onlyTrue")) {
 
-				if (Boolean.parseBoolean(lineElements[5].toLowerCase())) {
-					// System.out.println("Found some truth!");
-					// TODO it might not be equivalence, I need to check elements[2]
-					// TODO it might not be a CLS equivalence, I need to check and remove 0
+					// if the value at position 5 is true, add to mappings
+					if (Boolean.parseBoolean(lineElements[5].toLowerCase())) {
+						// System.out.println("Found some truth!");
+						// TODO it might not be equivalence, I need to check elements[2]
+						// TODO it might not be a CLS equivalence, I need to check and remove 0
+						MappingObjectStr formattedMap = new MappingObjectStr(lineElements[0], lineElements[1],
+								Double.valueOf(lineElements[3]), MappingObjectStr.EQ, 0);
+
+						mapSet.add(formattedMap);
+
+						countTrue++;
+					} else {// skip mapping
+						countFalse++;
+					}
+				}
+				
+				if(readOption.equals("AllMappings")) {
 					MappingObjectStr formattedMap = new MappingObjectStr(lineElements[0], lineElements[1],
 							Double.valueOf(lineElements[3]), MappingObjectStr.EQ, 0);
-
 					mapSet.add(formattedMap);
-
-					countTrue++;
-				} else {
-					countFalse++;
+					if (Boolean.parseBoolean(lineElements[5].toLowerCase())) countTrue++;
+					else countFalse++;
+					
+					
 				}
 			}
 
@@ -236,7 +259,7 @@ public class MediatingOntologiesUtils {
 
 		if (file.getName().endsWith(".tsv")) {
 			MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
-			mappings = moUtils.readAnnotatedMappingsFromTSV(filePath);
+			mappings = moUtils.readAnnotatedMappingsFromTSV(filePath, "AllMappings");
 		}
 		if (file.getName().endsWith(".txt")) {
 			try {
@@ -325,8 +348,8 @@ public class MediatingOntologiesUtils {
 		this.newUniqueMappingsPath = parentPath + "store-unique-mappings/";
 		createSubDirectory(this.newUniqueMappingsPath);
 		
-		this.resultsLogmapBioLLMPath = parentPath + "store-logmapBioLLM-results";
-		createSubDirectory(this.resultsLogmapBioLLMPath);
+		this.LogmapBioLLMMappingsPath = parentPath + "store-logmapBioLLM-mappings/";
+		createSubDirectory(this.LogmapBioLLMMappingsPath);
 
 
 
@@ -350,6 +373,19 @@ public class MediatingOntologiesUtils {
 		
 		OutPutFilesManager mapSaver = new OutPutFilesManager();
 		String path2file = null;
+		
+		File tryTXT = new File(mappingPath + ".txt");
+		File tryTSV = new File(mappingPath + ".tsv");
+
+		if(tryTXT.exists() || tryTSV.exists()) {
+			SimpleDateFormat dateFormat = new SimpleDateFormat("-yyyyMMdd_HHmmss");
+	        String timestamp = dateFormat.format(new Date());
+	        
+	        mappingPath = mappingPath + timestamp;
+	        System.out.println("New mappingPath is " + mappingPath);
+			
+		}
+		
 		// 5 = AllFlatFormats
 		try {
 			mapSaver.createOutFiles(mappingPath, 5, onto1_iri, onto2_iri);

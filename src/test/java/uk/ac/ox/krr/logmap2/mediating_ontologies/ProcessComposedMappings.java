@@ -1,3 +1,10 @@
+/*
+ * Where we take the mappings obtained via each mediating ontology and we subtract those that logmap had already found when aligning the source and target. 
+ */
+
+
+
+
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
 import java.io.File;
@@ -200,7 +207,7 @@ public class ProcessComposedMappings{
 
 		
 		try {
-			Set<MappingObjectStr> mapSource2Target = FetchAndStoreMediatingOntologies.checkDirForMappingFile(moUtils.sourceToTargetPath); 
+			Set<MappingObjectStr> mapSource2Target = moUtils.readMappingsFromFile(moUtils.sourceToTargetPath); 
 			// We now try and get the mappings no matter the file and format -only assume there is only one file in there though.
 			// If it doesn't work, uncomment the two below (and rename file to source2target.txt
 			//FlatAlignmentReader mappingReader = new FlatAlignmentReader(sourceTargetMappingsFile);
