@@ -644,6 +644,8 @@ public class LogMap2_OAEI_BioPortal {
 	 */
 	private Set<MappingObjectStr> getComposedMappings5(){
 		
+		//TODO: to be completed
+		
 		Set<MappingObjectStr> composed_mappings = new HashSet<MappingObjectStr>();
 		
 		//For stats
