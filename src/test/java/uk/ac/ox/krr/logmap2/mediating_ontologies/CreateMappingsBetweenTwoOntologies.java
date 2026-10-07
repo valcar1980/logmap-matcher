@@ -103,17 +103,12 @@ public class CreateMappingsBetweenTwoOntologies {
 		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
 		moUtils.getParentFolder(args);
 		moUtils.readConfigJSON();
-		
-		// The parent folder should already exist - don't forget the last "/" !
-		String parent_folder = "/home/valentina/git-repos/test-data/test_onto_output/test-mapping-store/";
-		System.out.println("Parent folder to store mappings" + parent_folder);
+
+		System.out.println("Parent folder to store mappings" + moUtils.parentPath);
 		
 		System.out.println("Example ontologies for mapping");
-		// TODO read from config and add the "file" bit
-		// String sourcePath = "/home/valentina/MyData/onto_bioportal/CVRG_EPOntology.owl";
-		//String targetPath = "/home/valentina/MyData/onto_bioportal/MIO.owl";
-		String onto1_iri = "file:/home/valentina/git-repos/test-data/test_onto_input/human.owl";
-		String onto2_iri = "file:/home/valentina/git-repos/test-data/test_onto_input/mouse.owl";
+		String onto1_iri = "file:" + moUtils.sourceOntoPath;
+		String onto2_iri = "file:" + moUtils.targetOntoPath;
 		//TODO check that the files exist before matching!
 		System.out.println(onto1_iri + "\n" + onto2_iri);
 		
@@ -127,7 +122,7 @@ public class CreateMappingsBetweenTwoOntologies {
 		long endTime = System.nanoTime();
 		System.out.println(
 				"Map matching task completed.\t" + Math.floor((endTime - startTime) / 10e9) + " seconds elapsed");
-		moUtils.saveOntologyMappings(onto_mappings, parent_folder+"testmap", onto1_iri,onto2_iri);
+		moUtils.saveOntologyMappings(onto_mappings, moUtils.source2targetLogmapMappingsPath, onto1_iri,onto2_iri);
 		
 
 	}
