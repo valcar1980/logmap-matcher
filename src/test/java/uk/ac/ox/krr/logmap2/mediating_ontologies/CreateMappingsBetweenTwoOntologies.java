@@ -1,3 +1,10 @@
+/*
+ * Use this class to create mappings between source and target and store them in folder. Input provided via config.
+ * Useful because it allows to overwrite the max number of mediating ontologies
+ */
+
+//TODO Resume correct use of config/parameters to change max number of mediating ontologies
+
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
 import java.util.Set;
@@ -11,7 +18,6 @@ import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
-import uk.ac.ox.krr.logmap2.io.OutPutFilesManager;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
 public class CreateMappingsBetweenTwoOntologies {
@@ -91,43 +97,12 @@ public class CreateMappingsBetweenTwoOntologies {
 		return null;
 	}
 	
-
-	
-
-
-// TODO remove method - now in MOUtils	
-	/**
-	 * 
-	 * @param Mappings
-	 * @param mappingPath String full path + name of the file, the function only adds the file extension
-	 * @param onto1_iri
-	 * @param onto2_iri
-	 * @return
-	 */
-	
-	public String saveOntologyMappings(Set<MappingObjectStr> Mappings, String mappingPath,
-			String onto1_iri, String onto2_iri ) {
-		
-		OutPutFilesManager mapSaver = new OutPutFilesManager();
-		String path2file = null;
-		// 5 = AllFlatFormats
-		try {
-			mapSaver.createOutFiles(mappingPath, 5, onto1_iri, onto2_iri);
-			mapSaver.addMappings(Mappings);
-			mapSaver.closeAndSaveFiles();
-			path2file = mappingPath;
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
-			System.out.println("Failed to save mappings, returning null");
-		}
-		return path2file;
-	}
-
-
 	
 
 	public static void main(String[] args) {
+		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
+		moUtils.getParentFolder(args);
+		moUtils.readConfigJSON();
 		
 		// The parent folder should already exist - don't forget the last "/" !
 		String parent_folder = "/home/valentina/git-repos/test-data/test_onto_output/test-mapping-store/";
@@ -152,7 +127,7 @@ public class CreateMappingsBetweenTwoOntologies {
 		long endTime = System.nanoTime();
 		System.out.println(
 				"Map matching task completed.\t" + Math.floor((endTime - startTime) / 10e9) + " seconds elapsed");
-		myLogMap.saveOntologyMappings(onto_mappings, parent_folder+"testmap", onto1_iri,onto2_iri);
+		moUtils.saveOntologyMappings(onto_mappings, parent_folder+"testmap", onto1_iri,onto2_iri);
 		
 
 	}

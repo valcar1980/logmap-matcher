@@ -45,7 +45,7 @@ public class FetchAndStoreMediatingOntologies {
 		// Expected input
 		String onto1_iri = "file:" + moUtils.sourceOntoPath;
 		String onto2_iri = "file:" + moUtils.targetOntoPath;
-		String s2tFilePath = moUtils.sourceToTargetPath + "source2target";
+		String s2tFilePath = moUtils.sourceToTargetDirPath + "source2target";
 		String storeOntoPath = moUtils.localOntoRepoPath;
 		
 		
@@ -87,7 +87,7 @@ public class FetchAndStoreMediatingOntologies {
 		// If ontology maps already exist, skip and move to checking whether the list of MO exists
 		System.out.println("First, we check if we have mappings between source and target.");
 		//TODO can we check without loading the whole file?
-		Set<MappingObjectStr> checkS2TMappings = moUtils.readMappingsFromFile(moUtils.sourceToTargetPath); 
+		Set<MappingObjectStr> checkS2TMappings = moUtils.readMappingsFromFile(moUtils.sourceToTargetDirPath); 
 		if (checkS2TMappings.size()>0) {
 			System.out.println("Found mappings between source and target, no need to create them.");
 
@@ -117,7 +117,7 @@ public class FetchAndStoreMediatingOntologies {
 			System.out.println("No mappings found between source and target, running Logmap now");
 			LogMap2_Matcher onto_matcher= onto_mapper.createMappings(onto1_iri, onto2_iri, moUtils.maxMONum);
 			s2tOnto_mappings = onto_matcher.getLogmap2_Mappings();
-			onto_mapper.saveOntologyMappings(s2tOnto_mappings, s2tFilePath, onto1_iri, onto2_iri);
+			moUtils.saveOntologyMappings(s2tOnto_mappings, s2tFilePath, onto1_iri, onto2_iri);
 			/*
 			 * Identify suitable mediating ontologies and store their label onto a list
 			 */
