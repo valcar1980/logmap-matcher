@@ -182,12 +182,12 @@ public class CreateComposedMappings{
 				System.out.println("Loading the mediating ontology " + mediOntoIRI);
 				Set<MappingObjectStr> s2mMappings = simpleMapper.createMappings(compMapper.onto1_iri, mediOntoIRI);
 				String mapFilePath1 = moUtils.simpleMappingsPath + o1Name + "_" + moName;
-				simpleMapper.saveOntologyMappings(s2mMappings, mapFilePath1,compMapper.onto1_iri, mediOntoIRI);
+				moUtils.saveOntologyMappings(s2mMappings, mapFilePath1,compMapper.onto1_iri, mediOntoIRI);
 				System.out.println("Saved mappings between source " + o1Name + " and medium " + moName);
 				
 				Set<MappingObjectStr> m2tMappings = simpleMapper.createMappings(mediOntoIRI,compMapper.onto2_iri);
 				String mapFilePath2 = moUtils.simpleMappingsPath + moName + "_" + o2Name;
-				simpleMapper.saveOntologyMappings(m2tMappings, mapFilePath2,mediOntoIRI, compMapper.onto2_iri);
+				moUtils.saveOntologyMappings(m2tMappings, mapFilePath2,mediOntoIRI, compMapper.onto2_iri);
 				System.out.println("Saved mappings between medium " + moName + " and target " + o2Name);
 				//TimeUnit.SECONDS.sleep(5);
 
