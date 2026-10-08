@@ -7,6 +7,7 @@
 
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
+import java.io.File;
 import java.util.Set;
 
 
@@ -102,11 +103,13 @@ public class CreateMappingsBetweenTwoOntologies {
 	public static void main(String[] args) {
 		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
 		moUtils.getParentFolder(args);
+		moUtils.createSubDirectoriesFromParent();
 		moUtils.readConfigJSON();
-
-		System.out.println("Parent folder to store mappings" + moUtils.parentPath);
+		Boolean readFromJSON = false;
+		moUtils.getSource2TargetLogmapMappings(readFromJSON);
 		
-		System.out.println("Example ontologies for mapping");
+		System.out.println("We will store mappings in " + moUtils.source2targetLogmapMappingsPath);
+		
 		String onto1_iri = "file:" + moUtils.sourceOntoPath;
 		String onto2_iri = "file:" + moUtils.targetOntoPath;
 		//TODO check that the files exist before matching!
