@@ -4,15 +4,85 @@
 
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
+import java.io.File;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Set;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
 public class CompareToReference{
+	public String referenceMapsPath;
+	public String inputMapsPath;
+	
+	// Similar to moUtils.readConfigJSON() but for experiments
+	public void readExperimentConfigJSON(String jsonPath) {
+		File jsonConfig = new File(jsonPath);
+		JsonNode jsonNode;
+		JsonNode experiment_info;
+		if (jsonConfig.exists()==false) {
+			System.out.println("\n\n Couldn't find experiment config JSON in parent folder " + jsonPath);
+			return;
+		} else {
+			
+			try {
+			
+			System.out.println("\n\n Found experiment config JSON in parent folder " + jsonPath);
+			ObjectMapper objectMapper = new ObjectMapper();
+	        jsonNode = objectMapper.readTree(jsonConfig);
+	        experiment_info = jsonNode.get("experiments").get("real_positives_and_negatives");
+			} catch (Exception e){
+				e.printStackTrace();
+				return;
+			}
+	        
+	        // Some optionals
+	        try {
+	        	referenceMapsPath = experiment_info.get("referenceMappings").asText();
+	        } catch (Exception e) {
+	        	System.out.println("\n\n Reading config, no path to reference mappings provided, setting to null.");
+	        	referenceMapsPath = null;
+	        }
+	        
+	        try {
+	        	inputMapsPath = experiment_info.get("inputMappings").asText();
+		        } catch (Exception e) {
+		        	System.out.println("\n\n Reading config, no path to input mappings provided, setting to null.");
+		        	inputMapsPath = null;
+		        } 
+	        }
+		}
 	
 	
-	
-	
+	/**
+	 * Counts how many mappings in the test set were correctly identified (realPositives) and which ones instead where wrong (realNegatives).
+	 * Although mathematically the same as TP, FP, they are conceptually different. We are only asking, is this mapping correct or not?
+	 * @param referenceMappings
+	 * @param testMappings
+	 * @return
+	 */
+	public Hashtable<String, Integer> computeRealPositivesAndNegatives (Set<MappingObjectStr> referenceMappings, Set<MappingObjectStr> testMappings) {
+		
+		int realPositives;
+		int realNegatives;
+		Set<MappingObjectStr> intersection = new HashSet<MappingObjectStr>(referenceMappings);
+		intersection.retainAll(testMappings);
+		realPositives = intersection.size();
+		realNegatives = testMappings.size() - realPositives;
+		
+		
+		Hashtable<String, Integer> countStats = new Hashtable<>();
+		countStats.put("(Real)Positives", realPositives);
+		countStats.put("(Real)Negatives", realNegatives);
+
+		
+		return countStats;
+	}
+
 	
 	
 	
@@ -20,28 +90,37 @@ public class CompareToReference{
 		
 		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
 		
-		moUtils.getParentFolder(args);
-		moUtils.readConfigJSON();
+		//moUtils.getParentFolder(args);
+		//moUtils.readConfigJSON();
+		
+		CompareToReference experiment = new CompareToReference();
+		String jsonPath = "/home/valentina/Data/OA-test/test-experiment/experiment_config.json";
+		experiment.readExperimentConfigJSON(jsonPath);
 
 		
 		// Load reference mappings
-		String raMapsFile = moUtils.referenceMapsPath;
+		String raMapsFile = experiment.referenceMapsPath;
 		Set<MappingObjectStr> referenceMappings = moUtils.readMappingsFromFile(raMapsFile);
 		System.out.println("Reference set of mappings contains " + referenceMappings.size() + " mappings");
 		
 		
 		// Load input mappings (as in, those that need testing)
-		String inputMapsFile = moUtils.annotatedComposedLLMMSubtPath;
+		String inputMapsFile = experiment.inputMapsPath;
 		Set<MappingObjectStr> inputMappings = moUtils.readMappingsFromFile(inputMapsFile);
 		System.out.println(" Input set of mappings contains " + inputMappings.size() + " mappings\n\n");
-
-		// Compare
 		
-		double precision = moUtils.computePrecisionFromSets(referenceMappings, inputMappings);
-		double recall = moUtils.computeRecallFromSets(referenceMappings, inputMappings);
-		double f1score = moUtils.computeF1score(precision, recall);
-		System.out.println("Precision: " + precision+ 
-				" \t recall:" + recall + "\t F1:"+ f1score +"\n\n");
+		
+		Hashtable<String, Integer> countStats = experiment.computeRealPositivesAndNegatives(referenceMappings, inputMappings);
+		System.out.println("Positives: " + countStats.get("(Real)Positives") + "\t Negatives: " + countStats.get("(Real)Negatives"));
+		
+
+//		// Compare
+//		
+//		double precision = moUtils.computePrecisionFromSets(referenceMappings, inputMappings);
+//		double recall = moUtils.computeRecallFromSets(referenceMappings, inputMappings);
+//		double f1score = moUtils.computeF1score(precision, recall);
+//		System.out.println("Precision: " + precision+ 
+//				" \t recall:" + recall + "\t F1:"+ f1score +"\n\n");
 		
 	}
 	
