@@ -1,6 +1,7 @@
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +33,38 @@ import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
  * @author valcar1980
  */
 public class FetchAndStoreMediatingOntologies {
+	
+	
+	protected static File findFlatFormatInDir(String dirPath) {
+		File dir = new File(dirPath);
+		File firstFile = null;
+		if(dir.exists()) {
+			
+			
+			
+			   // Create a FilenameFilter
+            FilenameFilter filter = new FilenameFilter() {
+
+                public boolean accept(File f, String name)
+                {
+                    return (name.endsWith(".txt") || name.endsWith(".rdf"));
+                }
+            };
+            
+            File[] listFiles = dir.listFiles(filter);
+            // Display the names of the files
+            for (int i = 0; i < listFiles.length; i++) {
+                System.out.println(listFiles[i].getName());			
+                }
+            if (listFiles.length>0) {
+			System.out.println("Assuming first txt/rdf file in folder is what you want");
+			firstFile = listFiles[0];	
+			System.out.println(firstFile);
+			}
+			}
+			return firstFile;
+		}
+		
 
 	
 	public static void main(String[] args) {
@@ -40,8 +73,8 @@ public class FetchAndStoreMediatingOntologies {
 		moUtils.getParentFolder(args);
 		moUtils.readConfigJSON();
 		moUtils.createSubDirectoriesFromParent();
+		System.out.println("\n\n Debug parentPath \t\t" + moUtils.parentPath);
 		
-
 		// Expected input
 		String onto1_iri = "file:" + moUtils.sourceOntoPath;
 		String onto2_iri = "file:" + moUtils.targetOntoPath;
@@ -87,10 +120,20 @@ public class FetchAndStoreMediatingOntologies {
 		// If ontology maps already exist, skip and move to checking whether the list of MO exists
 		System.out.println("First, we check if we have mappings between source and target.");
 		//TODO can we check without loading the whole file?
-		Set<MappingObjectStr> checkS2TMappings = moUtils.readMappingsFromFile(moUtils.sourceToTargetDirPath); 
-		if (checkS2TMappings.size()>0) {
+		System.out.println("\n\n Debug \t\t" + moUtils.sourceToTargetDirPath);
+		
+		
+		// TODO check if there is any file that could be used as such, otherwise invoke CreateComposedMappingsBetweenTwoOntologies!
+		File thereMayBeFile = findFlatFormatInDir(moUtils.sourceToTargetDirPath);
+		Set<MappingObjectStr> source2targetMappings;
+		if(thereMayBeFile!=null) {
+			source2targetMappings = moUtils.readMappingsFromFile(moUtils.sourceToTargetDirPath + thereMayBeFile.toString()); 
+		} else {
+			source2targetMappings = Collections.emptySet();	
+		}
+		if (source2targetMappings.size()>0) {
 			System.out.println("Found mappings between source and target, no need to create them.");
-
+			
 			// We need the representative labels to find the mediating ontologies
 			Set<String> s2tRepLabels = Collections.emptySet();
 			try {
@@ -101,7 +144,7 @@ public class FetchAndStoreMediatingOntologies {
 					new GetRepresentativeLabelsSetForMappings(
 							loader1.getOWLOntology(), 
 							loader2.getOWLOntology(), 
-							checkS2TMappings);
+							source2targetMappings);
 			
 			s2tRepLabels = representativeLabelExtractor.getRepresentativeLabels();
 			MediatingOntologyExtractor mo_extract = new MediatingOntologyExtractor(s2tRepLabels);

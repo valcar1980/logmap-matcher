@@ -94,7 +94,7 @@ public class CompareToReference{
 		//moUtils.readConfigJSON();
 		
 		CompareToReference experiment = new CompareToReference();
-		String jsonPath = "/home/valentina/Data/OA-test/test-experiment/experiment_config.json";
+		String jsonPath = "/home/valentina/Data/OA-test/test-experiment/largebio2021_snomed_nci_experiment_config.json";
 		experiment.readExperimentConfigJSON(jsonPath);
 
 		
