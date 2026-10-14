@@ -42,7 +42,50 @@ public class ProcessComposedMappings{
 	}
 	
 	
-	//TODO check automatically if the mapping order source-target needs to be swapped to target-source for comparinson with reference
+	// TODO check automatically if the mapping order source-target needs to be
+	// swapped to target-source for comparison with reference
+	public Boolean compareMappingOrder(Set<MappingObjectStr> AMappings, Set<MappingObjectStr> BMappings) {
+		Boolean sameMappingOrder = false;
+		MappingObjectStr firstAMapping;
+		MappingObjectStr firstBMapping;
+		
+		if (!AMappings.isEmpty()) {
+			firstAMapping = AMappings.iterator().next();
+		} else {
+			System.out.println("Cannot compare mappings order, first set is empty");
+			return null;
+		}
+
+		if (!BMappings.isEmpty()) {
+			firstBMapping = BMappings.iterator().next();
+		} else {
+		System.out.println("Cannot compare mappings order, second set is empty");
+		return null;
+		}
+
+	
+		String sourceATag = firstAMapping.getIRIStrEnt1().split("#")[0];
+		String targetATag = firstAMapping.getIRIStrEnt2().split("#")[0];
+		String sourceBTag = firstBMapping.getIRIStrEnt1().split("#")[0];
+		String targetBTag = firstBMapping.getIRIStrEnt2().split("#")[0];
+		
+		System.out.println(sourceATag + " : " + targetATag+ "\n" + sourceBTag + " : " + targetBTag);
+		
+		if (sourceATag.equals(targetBTag)) {
+			System.out.println("Mapping order is reversed, source from first set is " + sourceATag
+					+ " same as target from second set " + targetBTag);
+			
+		}else {
+			sameMappingOrder = true;
+
+			
+		}
+		
+		// TODO cover all options, we might figure out these are the wrong sets to compare
+		
+		return sameMappingOrder;
+	}
+
 	/**
 	 * If source and target are not in the same order during comparison of two sets of mappings,
 	 * this function allows you to invert the mapping order. For example, if one set is obtained with onto1-onto2, but

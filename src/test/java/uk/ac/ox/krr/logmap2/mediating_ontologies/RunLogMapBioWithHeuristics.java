@@ -33,8 +33,20 @@ public class RunLogMapBioWithHeuristics{
 		// Select composed mappings (or any mediating mapping...)
 		String mappingPath = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/composed-mappings-for-llm-annotation/all-composed.txt";
 		Set<MappingObjectStr> newComposedMappings = moUtils.readMappingsFromFile(mappingPath);
+		
+		
+		//Upload logmapBio as already computed
+		
+		String oldMappingPath = "/home/valentina/Data/tests/oaei-human-mouse/logmapbioheu/logmapbiomappings.txt";
+		Set<MappingObjectStr> oldMappings = moUtils.readMappingsFromFile(oldMappingPath);
+		
+		
 		ProcessComposedMappings cheekySwapper = new ProcessComposedMappings();
-		newComposedMappings = cheekySwapper.swapMappingOrder(newComposedMappings);
+		Boolean sameMappingOrder= cheekySwapper.compareMappingOrder(newComposedMappings, oldMappings);
+		if (sameMappingOrder==false) {
+			newComposedMappings = cheekySwapper.swapMappingOrder(newComposedMappings);
+			System.out.println("Had to reverse mapping directions");
+		}
 		
 		String fileOut = "/home/valentina/Data/tests/oaei-human-mouse/logmapbioheu/logmapbiomappings";
 
