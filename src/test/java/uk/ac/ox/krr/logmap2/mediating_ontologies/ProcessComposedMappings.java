@@ -42,9 +42,15 @@ public class ProcessComposedMappings{
 	}
 	
 	
-	// TODO check automatically if the mapping order source-target needs to be
-	// swapped to target-source for comparison with reference
-	public Boolean compareMappingOrder(Set<MappingObjectStr> AMappings, Set<MappingObjectStr> BMappings) {
+	
+	/**
+	 * Checks automatically if the mapping order source-target needs to be
+	 * swapped to target-source for comparison with reference
+	 * @param AMappings the ones that we will want to swap, if need be
+	 * @param RefMappings the ones with the mapping orientation we trust
+	 * @return sameMappingOrder true/false
+	 */
+	public Boolean compareMappingOrder(Set<MappingObjectStr> AMappings, Set<MappingObjectStr> RefMappings) {
 		Boolean sameMappingOrder = false;
 		MappingObjectStr firstAMapping;
 		MappingObjectStr firstBMapping;
@@ -56,8 +62,8 @@ public class ProcessComposedMappings{
 			return null;
 		}
 
-		if (!BMappings.isEmpty()) {
-			firstBMapping = BMappings.iterator().next();
+		if (!RefMappings.isEmpty()) {
+			firstBMapping = RefMappings.iterator().next();
 		} else {
 		System.out.println("Cannot compare mappings order, second set is empty");
 		return null;
@@ -91,7 +97,7 @@ public class ProcessComposedMappings{
 	 * this function allows you to invert the mapping order. For example, if one set is obtained with onto1-onto2, but
 	 * the other set is onto2-onto1, you use this function before comparing the alignment results.
 	 * @param AMappings
-	 * @return
+	 * @return swappedMappings
 	 */
 	public Set<MappingObjectStr> swapMappingOrder(Set<MappingObjectStr> AMappings){
 		Set<MappingObjectStr> swappedMappings = new HashSet<MappingObjectStr>();
