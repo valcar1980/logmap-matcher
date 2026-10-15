@@ -28,6 +28,43 @@ import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
 public class CompareHeuristicsWithLLMOracle{
 	
+	
+	
+	protected static void writeVotingHashMapToFile(HashMap<MappingObjectStr, List<String>> votingMatrix, String outPath) {
+		File votingMatrixFile = new File(outPath);
+		BufferedWriter bf = null;
+		
+		try {
+
+            // create new BufferedWriter for the output file
+            bf = new BufferedWriter(new FileWriter(votingMatrixFile));
+		
+			for(MappingObjectStr key:votingMatrix.keySet()) {
+				//System.out.println(key);
+
+
+	                // put key and value separated by a colon
+	                bf.write(key + "\t"
+	                         + votingMatrix.get(key));
+
+	                // new line
+	                bf.newLine();
+	            }
+
+	            bf.flush();
+	        }
+	        catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	
+		try {
+			bf.close();
+		}catch(Exception e) {}
+		
+		
+		
+	}
+	
 	public static void main (String[] args) {
 		
 		LogMap2_OAEI_BioPortal logmap_Bio = new LogMap2_OAEI_BioPortal();
@@ -83,7 +120,7 @@ public class CompareHeuristicsWithLLMOracle{
 				String ontoLabel = f.getName().substring(0, f.getName().lastIndexOf('.'));
 				System.out.println("Extracting votes for mediating ontology " + ontoLabel);
 				Set<MappingObjectStr>  moMappings = moUtils.readMappingsFromFile(f.getAbsolutePath());
-				if(moMappings.isEmpty()==true) break; //skipping empty sets
+				if(moMappings.isEmpty()==true) continue; //skipping empty sets
 				//loop through mappings
 				sameMappingOrder= cheekySwapper.compareMappingOrder(moMappings, newMappings);
 				if (sameMappingOrder==false) {
@@ -92,7 +129,7 @@ public class CompareHeuristicsWithLLMOracle{
 				}
 				for(MappingObjectStr map:moMappings) {
 					if(newMappings.contains(map)) {
-						System.out.println("Match in " + ontoLabel + " for mapping " + map);
+						//System.out.println("Match in " + ontoLabel + " for mapping " + map);
 						List<String> labels = votingMatrix.get(map);
 				        if (labels != null) {
 				            labels.add(ontoLabel);
@@ -100,46 +137,61 @@ public class CompareHeuristicsWithLLMOracle{
 				}
 			}
 		}
+			
 		
 		String outPath = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/testVoting/votingMatrix.txt";
-		File votingMatrixFile = new File(outPath);
-		BufferedWriter bf = null;
+		writeVotingHashMapToFile(votingMatrix, outPath);
+		
+		/*
+		 * Apply heuristics to mappings
+		 */
+		
+		HashMap<MappingObjectStr, Object[]> votingCount = new HashMap<MappingObjectStr, Object[]>();
+		for(MappingObjectStr key:votingMatrix.keySet()) {
+			Object[] array = new Object[3];
+			Integer moCount = votingMatrix.get(key).size();
+			Boolean passThreshold = false;
+			if(moCount>2) passThreshold = true;
+			
+			array[0] = moCount;
+			array[1] = "todo-confidence";
+			array[2] = passThreshold;
+			votingCount.put(key, array);
+		}
+		
+		String outPath2 = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/testVoting/votingCount.txt";
+		File votingCountFile = new File(outPath2);
+		BufferedWriter bf2 = null;
 		
 		try {
 
             // create new BufferedWriter for the output file
-            bf = new BufferedWriter(new FileWriter(votingMatrixFile));
+            bf2 = new BufferedWriter(new FileWriter(votingCountFile));
 		
-			for(MappingObjectStr key:votingMatrix.keySet()) {
+			for(MappingObjectStr key:votingCount.keySet()) {
 				//System.out.println(key);
 
-
+					Object [] writeArray = votingCount.get(key);
 	                // put key and value separated by a colon
-	                bf.write(key + "\t"
-	                         + votingMatrix.get(key));
+	                bf2.write(key + "\t"
+	                         + writeArray[0] + "\t" + writeArray[1] + "\t" + writeArray[2]);
 
 	                // new line
-	                bf.newLine();
+	                bf2.newLine();
 	            }
 
-	            bf.flush();
+	            bf2.flush();
 	        }
 	        catch (Exception e) {
 	            e.printStackTrace();
 	        }
 	
 		try {
-			bf.close();
+			bf2.close();
 		}catch(Exception e) {}
 		
-		/*
-		 * Apply heuristics to mappings
-		 */
 		
-		
-		
-		
-		
+		 
 		
 		/*
 		 * LLM-oracle annotated mappings
