@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -24,13 +25,16 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
 import uk.ac.ox.krr.logmap2.LogMap2_OAEI_BioPortal;
+import uk.ac.ox.krr.logmap2.Parameters;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
+import uk.ac.ox.krr.logmap2.oaei.reader.FlatAlignmentReader;
+import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
+
 
 public class CompareHeuristicsWithLLMOracle{
 	
 	
-	
-	protected static void writeVotingHashMapToFile(HashMap<MappingObjectStr, List<String>> votingMatrix, String outPath) {
+	protected static void writeVotingMatrixToFile(HashMap<MappingObjectStr, MappingMetadata> votingMatrix, String outPath) {
 		File votingMatrixFile = new File(outPath);
 		BufferedWriter bf = null;
 		
@@ -45,7 +49,7 @@ public class CompareHeuristicsWithLLMOracle{
 
 	                // put key and value separated by a colon
 	                bf.write(key + "\t"
-	                         + votingMatrix.get(key));
+	                         + votingMatrix.get(key).toString());
 
 	                // new line
 	                bf.newLine();
@@ -79,6 +83,8 @@ public class CompareHeuristicsWithLLMOracle{
 		// New Mappings are our composed mappings - logmapLLM mappings
 		String mappingPath = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/composed-mappings-minus-llm-default/all-composed-minus-llm-default.txt";
 		Set<MappingObjectStr> newMappings = moUtils.readMappingsFromFile(mappingPath);
+		
+		
 		System.out.println("There are " + newMappings.size() + " new mappings (i.e. composed minus logmap-llm) as baseline");
 		ProcessComposedMappings cheekySwapper = new ProcessComposedMappings();
 		Boolean sameMappingOrder;
@@ -87,10 +93,19 @@ public class CompareHeuristicsWithLLMOracle{
 		 * Create the voting matrix, key: mapping, value: [] empty array, which will be filled later
 		 */
 		
-		HashMap<MappingObjectStr, List<String>> votingMatrix = new HashMap<MappingObjectStr, List<String>>();
+		
+		 double confidenceLowThreshold = Parameters.confidence_composed_mappings2; 
+		 double confidenceHighThreshold = Parameters.confidence_composed_mappings1;
+		 System.out.println("Heuristics based on 2+ votes and confidence >= " + confidenceLowThreshold 
+		 + "or 1 vote and confidence >= " + confidenceHighThreshold);
+		
+		HashMap<MappingObjectStr, MappingMetadata> votingMatrix = new HashMap<MappingObjectStr, MappingMetadata>();
 		for(MappingObjectStr mapping: newMappings) {
 			
-			votingMatrix.put(mapping, new ArrayList<>());
+			MappingMetadata meta = new MappingMetadata();
+			meta.setConfidence(mapping.getConfidence());
+			//Assign confidence and initialise the rest
+			votingMatrix.put(mapping, meta);
 		}
 		
 		System.out.println("Sanity check, there are " + votingMatrix.keySet().size() + " mappings in the voting matrix");
@@ -130,9 +145,14 @@ public class CompareHeuristicsWithLLMOracle{
 				for(MappingObjectStr map:moMappings) {
 					if(newMappings.contains(map)) {
 						//System.out.println("Match in " + ontoLabel + " for mapping " + map);
-						List<String> labels = votingMatrix.get(map);
-				        if (labels != null) {
-				            labels.add(ontoLabel);
+						//ArrayList<String> labels = votingMatrix.get(map).get("moList");
+				        //if (labels != null) {
+				         //   labels.add(ontoLabel);
+						MappingMetadata currentMeta = votingMatrix.get(map);
+						MappingMetadata updateMeta = new MappingMetadata(currentMeta);
+						updateMeta.addToVotingCount();
+						updateMeta.addToMOList(ontoLabel);
+						votingMatrix.put(map, updateMeta);
 					}
 				}
 			}
@@ -140,56 +160,15 @@ public class CompareHeuristicsWithLLMOracle{
 			
 		
 		String outPath = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/testVoting/votingMatrix.txt";
-		writeVotingHashMapToFile(votingMatrix, outPath);
+		writeVotingMatrixToFile(votingMatrix, outPath);
+		
+
 		
 		/*
 		 * Apply heuristics to mappings
 		 */
 		
-		HashMap<MappingObjectStr, Object[]> votingCount = new HashMap<MappingObjectStr, Object[]>();
-		for(MappingObjectStr key:votingMatrix.keySet()) {
-			Object[] array = new Object[3];
-			Integer moCount = votingMatrix.get(key).size();
-			Boolean passThreshold = false;
-			if(moCount>2) passThreshold = true;
-			
-			array[0] = moCount;
-			array[1] = "todo-confidence";
-			array[2] = passThreshold;
-			votingCount.put(key, array);
-		}
-		
-		String outPath2 = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/testVoting/votingCount.txt";
-		File votingCountFile = new File(outPath2);
-		BufferedWriter bf2 = null;
-		
-		try {
 
-            // create new BufferedWriter for the output file
-            bf2 = new BufferedWriter(new FileWriter(votingCountFile));
-		
-			for(MappingObjectStr key:votingCount.keySet()) {
-				//System.out.println(key);
-
-					Object [] writeArray = votingCount.get(key);
-	                // put key and value separated by a colon
-	                bf2.write(key + "\t"
-	                         + writeArray[0] + "\t" + writeArray[1] + "\t" + writeArray[2]);
-
-	                // new line
-	                bf2.newLine();
-	            }
-
-	            bf2.flush();
-	        }
-	        catch (Exception e) {
-	            e.printStackTrace();
-	        }
-	
-		try {
-			bf2.close();
-		}catch(Exception e) {}
-		
 		
 		 
 		
@@ -239,7 +218,8 @@ public class CompareHeuristicsWithLLMOracle{
 //	}
 //	}
 	
-}}}
+}}
+
 	
 	
 	
