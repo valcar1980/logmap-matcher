@@ -38,6 +38,47 @@ public class CompareHeuristicsWithLLMOracle{
 	final double confidenceHighThreshold = Parameters.confidence_composed_mappings1;
 	
 	
+	public Hashtable<String, Double> computeSensitivityAndSpecificity(Set<MappingObjectStr> referenceMappings, 
+			Set<MappingObjectStr> testPosMappings, Set<MappingObjectStr> testNegMappings) {
+		double sensitivity;
+		double specificity;
+		double youdenIndex;
+		
+		int truePos; Set<MappingObjectStr> truePosSet = new HashSet<MappingObjectStr>();
+		int falsePos;Set<MappingObjectStr> falsePosSet = new HashSet<MappingObjectStr>();
+		int falseNeg;Set<MappingObjectStr> falseNegSet = new HashSet<MappingObjectStr>();
+		int trueNeg;Set<MappingObjectStr> trueNegSet = new HashSet<MappingObjectStr>();
+		
+		for(MappingObjectStr pmap: testPosMappings) {
+			if (referenceMappings.contains(pmap)) truePosSet.add(pmap);
+			else falsePosSet.add(pmap);
+			
+		for (MappingObjectStr nmap: testNegMappings) {
+			if (referenceMappings.contains(nmap)) falseNegSet.add(nmap);
+			else trueNegSet.add(nmap);
+			
+		}
+		}
+		
+		truePos = truePosSet.size();//test says yes and reference says yes
+		falsePos = falsePosSet.size();//test says yes but reference says no(i.e. map is not present in the reference)
+		falseNeg = falseNegSet.size();// test says no but reference says yes
+ 		trueNeg = trueNegSet.size();//test say no and reference say no (i.e. map is not present in the reference)
+		
+		sensitivity = (double)(truePos)/ ((double)(truePos + falseNeg)); // probability of our test to detect a mapping when the mapping is in the reference
+		specificity = (double)(trueNeg)/ ((double)(trueNeg + falsePos)); // probability of our test to discard a mapping when the mapping is not in the reference
+		youdenIndex = sensitivity + specificity -1.0;
+		Hashtable<String, Double> diagnosticStats = new Hashtable<String, Double> ();
+		diagnosticStats.put("Sensitivity", sensitivity);
+		diagnosticStats.put("Specificity", specificity);
+		diagnosticStats.put("YoudenIndex", youdenIndex);
+
+		return diagnosticStats;
+	}
+	
+	
+	
+	
 	public Boolean applyNaiveHeuristicFilter(Double confidence, Integer voteCount) {
 		Boolean passThreshold = false;
 		
@@ -110,7 +151,7 @@ public class CompareHeuristicsWithLLMOracle{
 		String iri2 = onto2Path;
 		
 		// New Mappings are our composed mappings - logmapLLM mappings
-		String mappingPath = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/composed-mappings-minus-llm-default/all-composed-minus-llm-default.txt";
+		String mappingPath = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/composed-mappings-minus-llm-mutualsub/all-composed-minus-llm-mutualsub.txt";
 		Set<MappingObjectStr> newMappings = moUtils.readMappingsFromFile(mappingPath);
 		
 		
@@ -218,22 +259,23 @@ public class CompareHeuristicsWithLLMOracle{
 		comparer.writeVotingMatrixToFile(votingMatrix, outPath2, true);
 		
 		
-		
-		
 		// Now compare to reference to get Sensitivity, Specificity and Youden's index
 		String raPath = "/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/reference.rdf";
 		Set<MappingObjectStr> referenceMappings = moUtils.readMappingsFromFile(raPath);
 		System.out.println("Reference mappings count: " + referenceMappings.size());
+		
+		//Get real positives and real negatives
+		CompareToReference experiment = new CompareToReference();
+		Hashtable<String, Integer> countStats = experiment.computeRealPositivesAndNegatives(referenceMappings, newMappings);
+		
 		
 		Set<MappingObjectStr> heuristicsDiscardedMappings = new HashSet<MappingObjectStr>(newMappings);
 		heuristicsDiscardedMappings.removeAll(heuristicsFilteredMappings);
 		System.out.println("Mappings accepted by our heuristics filter: " + heuristicsFilteredMappings.size() +
 				"Mappings discarded by our heuristic filter: " + heuristicsDiscardedMappings.size());
 		
-		Hashtable<String, Double> heuStats =moUtils.computeSensitivityAndSpecificity(referenceMappings, heuristicsFilteredMappings, heuristicsDiscardedMappings); 
-		System.out.println("\n***Heuristics-filtered mappings***\n");
-		System.out.println("\nSensitivity:  " + Math.round(heuStats.get("Sensitivity")*1000d)/1000d + "\t Specificity: " + Math.round(heuStats.get("Specificity")*1000d)/1000d +
-				"\t Youden Index: " + Math.round(heuStats.get("YoudenIndex")*1000d)/1000d + "\n");
+		Hashtable<String, Double> heuStats =comparer.computeSensitivityAndSpecificity(referenceMappings, heuristicsFilteredMappings, heuristicsDiscardedMappings); 
+		
 		
 		/*
 		 * LLM-oracle annotated mappings
@@ -242,7 +284,7 @@ public class CompareHeuristicsWithLLMOracle{
 		
 		//Upload llm-annotation - using default (with msub we get some extra mappings)
 		
-		String llmAnnotatedMappingsPath = "/home/valentina/Data/anatomy-composed-llm-annotated/all-composed-minus-llm-default.annotated.tsv";
+		String llmAnnotatedMappingsPath = "/home/valentina/Data/anatomy-composed-llm-annotated/all-composed-minus-llm-mutualsub.annotated.tsv";
 		Set<MappingObjectStr> llmAnnotatedMappings = moUtils.readAnnotatedMappingsFromTSV(llmAnnotatedMappingsPath,"allMappings");
 		Set<MappingObjectStr> llmTrueAnnotatedMappings = moUtils.readAnnotatedMappingsFromTSV(llmAnnotatedMappingsPath,"onlyTrue");
 		Set<MappingObjectStr> llmFalseAnnotatedMappings = new HashSet<MappingObjectStr>(llmAnnotatedMappings);
@@ -257,7 +299,18 @@ public class CompareHeuristicsWithLLMOracle{
 		Set<MappingObjectStr> intersectionA = sanityChecker.mappingSetSubtraction(newMappings, llmAnnotatedMappings);
 		Set<MappingObjectStr> intersectionB = sanityChecker.mappingSetSubtraction(llmAnnotatedMappings, newMappings);
 		
-		Hashtable<String, Double> llmStats =moUtils.computeSensitivityAndSpecificity(referenceMappings, llmTrueAnnotatedMappings, llmFalseAnnotatedMappings); 
+		Hashtable<String, Double> llmStats =comparer.computeSensitivityAndSpecificity(referenceMappings, llmTrueAnnotatedMappings, llmFalseAnnotatedMappings); 
+		
+		/*
+		 * Print results to screen
+		 */
+		
+		
+		System.out.println("\n***New mappings counts***\n");
+		System.out.println("Real Positives: " + countStats.get("(Real)Positives") + "\t Real Negatives: " + countStats.get("(Real)Negatives"));
+		System.out.println("\n***Heuristics-filtered mappings***\n");
+		System.out.println("\nSensitivity:  " + Math.round(heuStats.get("Sensitivity")*1000d)/1000d + "\t Specificity: " + Math.round(heuStats.get("Specificity")*1000d)/1000d +
+				"\t Youden Index: " + Math.round(heuStats.get("YoudenIndex")*1000d)/1000d + "\n");
 		System.out.println("\n***LLM-annotated mappings***\n");
 		System.out.println("\nSensitivity:  " + Math.round(llmStats.get("Sensitivity")*1000d)/1000d + "\t Specificity: " + Math.round(llmStats.get("Specificity")*1000d)/1000d +
 				"\t Youden Index: " + Math.round(llmStats.get("YoudenIndex")*1000d)/1000d + "\n");
