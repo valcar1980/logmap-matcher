@@ -231,6 +231,7 @@ public class CompareHeuristicsWithLLMOracle{
 				"Mappings discarded by our heuristic filter: " + heuristicsDiscardedMappings.size());
 		
 		Hashtable<String, Double> heuStats =moUtils.computeSensitivityAndSpecificity(referenceMappings, heuristicsFilteredMappings, heuristicsDiscardedMappings); 
+		System.out.println("\n***Heuristics-filtered mappings***\n");
 		System.out.println("\nSensitivity:  " + Math.round(heuStats.get("Sensitivity")*1000d)/1000d + "\t Specificity: " + Math.round(heuStats.get("Specificity")*1000d)/1000d +
 				"\t Youden Index: " + Math.round(heuStats.get("YoudenIndex")*1000d)/1000d + "\n");
 		
@@ -243,14 +244,24 @@ public class CompareHeuristicsWithLLMOracle{
 		
 		String llmAnnotatedMappingsPath = "/home/valentina/Data/anatomy-composed-llm-annotated/all-composed-minus-llm-default.annotated.tsv";
 		Set<MappingObjectStr> llmAnnotatedMappings = moUtils.readAnnotatedMappingsFromTSV(llmAnnotatedMappingsPath,"allMappings");
+		Set<MappingObjectStr> llmTrueAnnotatedMappings = moUtils.readAnnotatedMappingsFromTSV(llmAnnotatedMappingsPath,"onlyTrue");
+		Set<MappingObjectStr> llmFalseAnnotatedMappings = new HashSet<MappingObjectStr>(llmAnnotatedMappings);
+		llmFalseAnnotatedMappings.removeAll(llmTrueAnnotatedMappings);
 		//Sanity check
 		System.out.println("Sanity check, there are " + llmAnnotatedMappings.size() + " mappings in the llm-annotated set vs " 
 		+ votingMatrix.keySet().size() + " in the original new composed mappings");
 		
 		// is newMappings subset of llm-annotation?
+		//TODO print out something
 		ProcessComposedMappings sanityChecker = new ProcessComposedMappings();
 		Set<MappingObjectStr> intersectionA = sanityChecker.mappingSetSubtraction(newMappings, llmAnnotatedMappings);
 		Set<MappingObjectStr> intersectionB = sanityChecker.mappingSetSubtraction(llmAnnotatedMappings, newMappings);
+		
+		Hashtable<String, Double> llmStats =moUtils.computeSensitivityAndSpecificity(referenceMappings, llmTrueAnnotatedMappings, llmFalseAnnotatedMappings); 
+		System.out.println("\n***LLM-annotated mappings***\n");
+		System.out.println("\nSensitivity:  " + Math.round(llmStats.get("Sensitivity")*1000d)/1000d + "\t Specificity: " + Math.round(llmStats.get("Specificity")*1000d)/1000d +
+				"\t Youden Index: " + Math.round(llmStats.get("YoudenIndex")*1000d)/1000d + "\n");
+		
 	
 }}
 
