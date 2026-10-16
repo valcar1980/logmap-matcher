@@ -12,6 +12,8 @@ import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -131,7 +133,7 @@ public class CompareHeuristicsWithLLMOracle{
 			votingMatrix.put(mapping, meta);
 		}
 		
-		System.out.println("Sanity check, there are " + votingMatrix.keySet().size() + " mappings in the voting matrix");
+		//System.out.println("Sanity check, there are " + votingMatrix.keySet().size() + " mappings in the voting matrix");
 		
 		/*
 		 * Retrieve source of mapping from all mediating ontologies
@@ -192,7 +194,8 @@ public class CompareHeuristicsWithLLMOracle{
 		// At this point I could even load a votingMatrix file and apply any heuristic I want
 		 System.out.println("Heuristics based on 2+ votes and confidence >= " + comparer.confidenceLowThreshold 
 		 + "or 1 vote and confidence >= " + comparer.confidenceHighThreshold);
-		
+		 Set<MappingObjectStr> heuristicsFilteredMappings = new HashSet<MappingObjectStr>();
+		 Integer countPassedThreshold = 0;
 		for(HashMap.Entry<MappingObjectStr,MappingMetadata> entry:votingMatrix.entrySet()) {
 	        {
 	            MappingObjectStr mapping = entry.getKey();
@@ -203,57 +206,51 @@ public class CompareHeuristicsWithLLMOracle{
 	            Boolean passThreshold = comparer.applyNaiveHeuristicFilter(currentTabular.getConfidence(), currentTabular.getVotingCount());
 	            updateTabular.setPassThreshold(passThreshold);
 	            votingMatrix.put(mapping, updateTabular);
+	            
+	            if(passThreshold == true) {
+	            	countPassedThreshold++;
+	            	heuristicsFilteredMappings.add(mapping);
+	            }
 	        }
 		}
-		 
+		System.out.println("The mappings passing the heuristic threshold are " + countPassedThreshold + " out of " + votingMatrix.size());
 		String outPath2 = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/testVoting/NaiveHeuristicsMatrix.txt";
 		comparer.writeVotingMatrixToFile(votingMatrix, outPath2, true);
+		
+		
+		
+		
+		// Now compare to reference to get Sensitivity, Specificity and Youden's index
+		String raPath = "/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/reference.rdf";
+		Set<MappingObjectStr> referenceMappings = moUtils.readMappingsFromFile(raPath);
+		System.out.println("Reference mappings count: " + referenceMappings.size());
+		
+		Set<MappingObjectStr> heuristicsDiscardedMappings = new HashSet<MappingObjectStr>(newMappings);
+		heuristicsDiscardedMappings.removeAll(heuristicsFilteredMappings);
+		System.out.println("Mappings accepted by our heuristics filter: " + heuristicsFilteredMappings.size() +
+				"Mappings discarded by our heuristic filter: " + heuristicsDiscardedMappings.size());
+		
+		Hashtable<String, Double> heuStats =moUtils.computeSensitivityAndSpecificity(referenceMappings, heuristicsFilteredMappings, heuristicsDiscardedMappings); 
+		System.out.println("\nSensitivity:  " + Math.round(heuStats.get("Sensitivity")*1000d)/1000d + "\t Specificity: " + Math.round(heuStats.get("Specificity")*1000d)/1000d +
+				"\t Youden Index: " + Math.round(heuStats.get("YoudenIndex")*1000d)/1000d + "\n");
 		
 		/*
 		 * LLM-oracle annotated mappings
 		 */
 		
 		
-		//Upload llm-annotation
+		//Upload llm-annotation - using default (with msub we get some extra mappings)
 		
-//		String oldMappingPath = "/home/valentina/Data/tests/oaei-mouse-human/logmapbioheu/logmapbiomappings.txt";
-//		Set<MappingObjectStr> oldMappings = moUtils.readMappingsFromFile(oldMappingPath);
-//		
-//		
-//
-//		String fileOut = "/home/valentina/Data/tests/oaei-mouse-human/logmapbioheu/logmapbiomappings";
-
-//		//Run LogMapBio from scratch
-//		try {
-//			logmap_Bio.align(iri1, iri2); // this gets also the 10 mediating ontologies :O
-//			//logmap_Bio.returnAlignmentFile(file_out);
-//			
-//			Set<MappingObjectStr> logmapBioMappings = logmap_Bio.getLogMapBio_Mappings();
-//			moUtils.saveOntologyMappings(logmapBioMappings, fileOut,iri1, iri2 ); 			
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		String llmAnnotatedMappingsPath = "/home/valentina/Data/anatomy-composed-llm-annotated/all-composed-minus-llm-default.annotated.tsv";
+		Set<MappingObjectStr> llmAnnotatedMappings = moUtils.readAnnotatedMappingsFromTSV(llmAnnotatedMappingsPath,"allMappings");
+		//Sanity check
+		System.out.println("Sanity check, there are " + llmAnnotatedMappings.size() + " mappings in the llm-annotated set vs " 
+		+ votingMatrix.keySet().size() + " in the original new composed mappings");
 		
-		// TODO:Run matcher using same new mappings as different experiment
-//		OWLOntologyManager onto_manager = OWLManager.createOWLOntologyManager();
-//		// In case an import is broken
-//		OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
-//		// Important to reassign value, see https://github.com/owlcs/owlapi/issues/503
-//		config = config.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
-//		onto_manager.setOntologyLoaderConfiguration(config);
-//		try {
-//		OWLOntology onto1 = onto_manager.loadOntology(IRI.create(iri1));
-//		OWLOntology onto2 = onto_manager.loadOntology(IRI.create(iri2));
-//		
-//		LogMap2_Matcher logmapBioMappingsV2 = new LogMap2_Matcher(onto1,onto2, newComposedMappings);
-//		
-//		String fileOutV2 = fileOut + "V2";
-//		moUtils.saveOntologyMappings(logmapBioMappingsV2.getLogmap2_Mappings(), fileOutV2, iri1, iri2);
-//	}catch(Exception e){
-//		e.printStackTrace();
-//	}
-//	}
+		// is newMappings subset of llm-annotation?
+		ProcessComposedMappings sanityChecker = new ProcessComposedMappings();
+		Set<MappingObjectStr> intersectionA = sanityChecker.mappingSetSubtraction(newMappings, llmAnnotatedMappings);
+		Set<MappingObjectStr> intersectionB = sanityChecker.mappingSetSubtraction(llmAnnotatedMappings, newMappings);
 	
 }}
 

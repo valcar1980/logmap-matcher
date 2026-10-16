@@ -89,6 +89,11 @@ public class MediatingOntologiesUtils {
 	 */
 	public Set<MappingObjectStr> readAnnotatedMappingsFromTSV(String fullPath, String readOption) {
 
+		if(!(readOption.equals("onlyTrue") || readOption.equals("allMappings"))) {
+			System.out.println("Wrong TSV reading option provided, check for typos");
+			return null;
+		}
+		
 		Set<MappingObjectStr> mapSet = new HashSet<MappingObjectStr>();
 		try {
 
@@ -132,7 +137,7 @@ public class MediatingOntologiesUtils {
 					}
 				}
 				
-				if(readOption.equals("AllMappings")) {
+				if(readOption.equals("allMappings")) {
 					MappingObjectStr formattedMap = new MappingObjectStr(lineElements[0], lineElements[1],
 							Double.valueOf(lineElements[3]), MappingObjectStr.EQ, 0);
 					mapSet.add(formattedMap);
@@ -528,6 +533,35 @@ public class MediatingOntologiesUtils {
 		return countStats;
 	}
 	
+	public Hashtable<String, Double> computeSensitivityAndSpecificity(Set<MappingObjectStr> referenceMappings, 
+			Set<MappingObjectStr> testPosMappings, Set<MappingObjectStr> testNegMappings) {
+		double sensitivity;
+		double specificity;
+		double youdenIndex;
+		
+		int truePos;
+		int falsePos;
+		int falseNeg;
+		int trueNeg;
+		Set<MappingObjectStr> intersectionPositives = new HashSet<MappingObjectStr>(referenceMappings);
+		intersectionPositives.retainAll(testPosMappings); //both test and reference say Pos/Yes
+		truePos = intersectionPositives.size();
+		falsePos = testPosMappings.size() - truePos; //test says yes but refence says no
+		falseNeg = referenceMappings.size()-truePos; // test says no but reference says yes
+		Set<MappingObjectStr> intersectionNegatives = new HashSet<MappingObjectStr>(testNegMappings);
+		intersectionNegatives.retainAll(referenceMappings); //test say no and reference say no
+		trueNeg = intersectionNegatives.size();
+		
+		sensitivity = (double)(truePos)/ ((double)(truePos + falseNeg)); // probability of our test to detect a mapping when the mapping is in the reference
+		specificity = (double)(trueNeg)/ ((double)(trueNeg + falsePos)); // probability of our test to discard a mapping when the mapping is not in the reference
+		youdenIndex = sensitivity + specificity -1.0;
+		Hashtable<String, Double> diagnosticStats = new Hashtable<String, Double> ();
+		diagnosticStats.put("Sensitivity", sensitivity);
+		diagnosticStats.put("Specificity", specificity);
+		diagnosticStats.put("YoudenIndex", youdenIndex);
+
+		return diagnosticStats;
+	}
 	
 	public double computePrecisionFromSets(Set<MappingObjectStr> referenceMappings, Set<MappingObjectStr> testMappings ) {
 		double precision;
