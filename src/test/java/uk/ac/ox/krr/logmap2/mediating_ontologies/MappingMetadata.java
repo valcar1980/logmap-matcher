@@ -1,3 +1,7 @@
+/*
+ * Class that captures all the metadata around a mapping resulting from an Ontology Alignment process
+ */
+
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
 
@@ -12,11 +16,13 @@ public class MappingMetadata {
 	        private Double confidence;
 	        private List<String> moList;
 	        private Integer votingCount;
-	        private boolean passThreshold = false;
+	        private boolean passThreshold;
 
 	        public MappingMetadata() {
+	        	this.confidence = 0.0;
 	            this.votingCount=0;
 	            this.moList = new ArrayList<>();
+	            this.passThreshold = false;
 	        }
 	        
 	        public MappingMetadata(MappingMetadata other) {
@@ -85,7 +91,17 @@ public class MappingMetadata {
 
 	    	
 	    	public String toString(){
+	    		return confidence + "\t" + votingCount + "\t" + moList;
+	    	}
+	    	
+	    	public String toString(Boolean withThreshold) {
+	    		if(withThreshold==true) {
 	    		return confidence + "\t" + votingCount + "\t" + passThreshold + "\t" + moList;
+	    	}else {
+	    		return confidence + "\t" + votingCount + "\t" + moList;
 	    	}
 	    	
 	    }
+	    	
+	    	
+}

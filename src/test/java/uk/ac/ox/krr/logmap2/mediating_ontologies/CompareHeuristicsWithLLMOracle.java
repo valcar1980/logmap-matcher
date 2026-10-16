@@ -32,42 +32,69 @@ import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
 
 
 public class CompareHeuristicsWithLLMOracle{
+	final double confidenceLowThreshold = Parameters.confidence_composed_mappings2; 
+	final double confidenceHighThreshold = Parameters.confidence_composed_mappings1;
 	
 	
-	protected static void writeVotingMatrixToFile(HashMap<MappingObjectStr, MappingMetadata> votingMatrix, String outPath) {
+	public Boolean applyNaiveHeuristicFilter(Double confidence, Integer voteCount) {
+		Boolean passThreshold = false;
+		
+		if((voteCount>=2 && confidence > confidenceLowThreshold) ||
+		(voteCount == 1 && confidence > confidenceHighThreshold)){
+			passThreshold = true;
+		}
+		
+		
+		return passThreshold;
+	}
+	
+	
+	
+	
+	/**
+	 * Create a tabular file with all the mappings and how many mediating ontologies voted for each of them
+	 * @param votingMatrix 
+	 * @param outPath
+	 */
+	public void writeVotingMatrixToFile(HashMap<MappingObjectStr, MappingMetadata> votingMatrix,
+			String outPath, Boolean displayPassThreshold) {
 		File votingMatrixFile = new File(outPath);
 		BufferedWriter bf = null;
-		
+
 		try {
 
-            // create new BufferedWriter for the output file
-            bf = new BufferedWriter(new FileWriter(votingMatrixFile));
-		
-			for(MappingObjectStr key:votingMatrix.keySet()) {
-				//System.out.println(key);
+			// create new BufferedWriter for the output file
+			bf = new BufferedWriter(new FileWriter(votingMatrixFile));
+			if(displayPassThreshold==false) {
+				bf.write("#\t Mapping \t Confidence \t VoteCount \t MediatingOntologies");}
+			else {
+				bf.write("#\t Mapping \t Confidence \t VoteCount \t passThreshold \t MediatingOntologies");
 
+			}
+			bf.newLine();
 
-	                // put key and value separated by a colon
-	                bf.write(key + "\t"
-	                         + votingMatrix.get(key).toString());
+			for (MappingObjectStr key : votingMatrix.keySet()) {
+				// System.out.println(key);
 
-	                // new line
-	                bf.newLine();
-	            }
+				// put key and value separated by a colon
+				bf.write(key + "\t" + votingMatrix.get(key).toString(displayPassThreshold));
 
-	            bf.flush();
-	        }
-	        catch (Exception e) {
-	            e.printStackTrace();
-	        }
-	
+				// new line
+				bf.newLine();
+			}
+
+			bf.flush();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		try {
 			bf.close();
-		}catch(Exception e) {}
-		
-		
-		
+		} catch (Exception e) {
+		}
+
 	}
+	
 	
 	public static void main (String[] args) {
 		
@@ -93,11 +120,7 @@ public class CompareHeuristicsWithLLMOracle{
 		 * Create the voting matrix, key: mapping, value: [] empty array, which will be filled later
 		 */
 		
-		
-		 double confidenceLowThreshold = Parameters.confidence_composed_mappings2; 
-		 double confidenceHighThreshold = Parameters.confidence_composed_mappings1;
-		 System.out.println("Heuristics based on 2+ votes and confidence >= " + confidenceLowThreshold 
-		 + "or 1 vote and confidence >= " + confidenceHighThreshold);
+		CompareHeuristicsWithLLMOracle comparer = new CompareHeuristicsWithLLMOracle();
 		
 		HashMap<MappingObjectStr, MappingMetadata> votingMatrix = new HashMap<MappingObjectStr, MappingMetadata>();
 		for(MappingObjectStr mapping: newMappings) {
@@ -144,12 +167,10 @@ public class CompareHeuristicsWithLLMOracle{
 				}
 				for(MappingObjectStr map:moMappings) {
 					if(newMappings.contains(map)) {
-						//System.out.println("Match in " + ontoLabel + " for mapping " + map);
-						//ArrayList<String> labels = votingMatrix.get(map).get("moList");
-				        //if (labels != null) {
-				         //   labels.add(ontoLabel);
+
 						MappingMetadata currentMeta = votingMatrix.get(map);
 						MappingMetadata updateMeta = new MappingMetadata(currentMeta);
+						
 						updateMeta.addToVotingCount();
 						updateMeta.addToMOList(ontoLabel);
 						votingMatrix.put(map, updateMeta);
@@ -160,7 +181,7 @@ public class CompareHeuristicsWithLLMOracle{
 			
 		
 		String outPath = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/testVoting/votingMatrix.txt";
-		writeVotingMatrixToFile(votingMatrix, outPath);
+		comparer.writeVotingMatrixToFile(votingMatrix, outPath, false);
 		
 
 		
@@ -168,9 +189,25 @@ public class CompareHeuristicsWithLLMOracle{
 		 * Apply heuristics to mappings
 		 */
 		
-
+		// At this point I could even load a votingMatrix file and apply any heuristic I want
+		 System.out.println("Heuristics based on 2+ votes and confidence >= " + comparer.confidenceLowThreshold 
+		 + "or 1 vote and confidence >= " + comparer.confidenceHighThreshold);
 		
+		for(HashMap.Entry<MappingObjectStr,MappingMetadata> entry:votingMatrix.entrySet()) {
+	        {
+	            MappingObjectStr mapping = entry.getKey();
+	            MappingMetadata currentTabular = entry.getValue();
+	            MappingMetadata updateTabular = new MappingMetadata(currentTabular);
+	            
+	            //use key and value
+	            Boolean passThreshold = comparer.applyNaiveHeuristicFilter(currentTabular.getConfidence(), currentTabular.getVotingCount());
+	            updateTabular.setPassThreshold(passThreshold);
+	            votingMatrix.put(mapping, updateTabular);
+	        }
+		}
 		 
+		String outPath2 = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/testVoting/NaiveHeuristicsMatrix.txt";
+		comparer.writeVotingMatrixToFile(votingMatrix, outPath2, true);
 		
 		/*
 		 * LLM-oracle annotated mappings
