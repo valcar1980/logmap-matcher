@@ -141,23 +141,39 @@ public class CompareHeuristicsWithLLMOracle{
 	
 	public static void main (String[] args) {
 		
-		LogMap2_OAEI_BioPortal logmap_Bio = new LogMap2_OAEI_BioPortal();
+		/*
+		 * Initialisations
+		 */
 		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
-		
-		// Take onto1 and onto2
-		String onto1Path = "file:/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/mouse.owl";
-		String onto2Path = "file:/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/human.owl";
-		String iri1 = onto1Path;
-		String iri2 = onto2Path;
-		
-		// New Mappings are our composed mappings - logmapLLM mappings
-		String mappingPath = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/composed-mappings-minus-llm-mutualsub/all-composed-minus-llm-mutualsub.txt";
-		Set<MappingObjectStr> newMappings = moUtils.readMappingsFromFile(mappingPath);
-		
-		
-		System.out.println("There are " + newMappings.size() + " new mappings (i.e. composed minus logmap-llm) as baseline");
 		ProcessComposedMappings cheekySwapper = new ProcessComposedMappings();
-		Boolean sameMappingOrder;
+		
+		/*
+		 * Input data
+		 */
+		
+		String mappingPath = "/home/valentina/Data/OAEI_results_bioml2025_largebio2021/largebio/oaei-snomed-nci/composed-mappings-for-llm-annotation/all-composed-minus-llm-mutualsub.txt";
+		String moMappingFolderPath = "/home/valentina/Data/OAEI_results_bioml2025_largebio2021/largebio/oaei-snomed-nci/store-composed-mappings/";
+		String llmAnnotatedMappingsPath = "/home/valentina/Data/composed-llm-annotated/logmap-composed-mappings-largebio-2021_ANNOTATED/snomed-nci/all-composed-minus-llm-mutualsub.annotated.tsv";
+		String raPath = "/home/valentina/Data/OAEI-input/oaei-2025-input/largebio/snomed-nci/oaei_SNOMED2NCI_UMLS_mappings_with_flagged_repairs.rdf";
+		/*
+		 * Output paths
+		 */
+		String baseOutPath = "/home/valentina/Data/OAEI_results_bioml2025_largebio2021/largebio/oaei-snomed-nci/testVoting/";
+		String outPath = baseOutPath + "votingMatrix.txt";
+		String outPath2 = baseOutPath + "NaiveHeuristicsMatrix.txt";
+
+		
+		File baseOutFolder = new File(baseOutPath);
+		if(!baseOutFolder.exists()) baseOutFolder.mkdir();
+
+
+		/*
+		 * More initialisations
+		 */
+		
+		Set<MappingObjectStr> newMappings = moUtils.readMappingsFromFile(mappingPath);
+		File moMappingFolder = new File(moMappingFolderPath);
+		Set<MappingObjectStr> referenceMappings = moUtils.readMappingsFromFile(raPath);
 		
 		/*
 		 * Create the voting matrix, key: mapping, value: [] empty array, which will be filled later
@@ -180,10 +196,7 @@ public class CompareHeuristicsWithLLMOracle{
 		 * Retrieve source of mapping from all mediating ontologies
 		 */
 		
-		String moMappingFolderPath = "/home/valentina/Data/tests/oaei-mouse-human/store-composed-mappings/";
-		File moMappingFolder = new File(moMappingFolderPath);
-		
-		
+
 		// We filter txt only, because the folder contains also a tsv for each MO
 		//TODO use hashmap key uniqueness instead
 		FilenameFilter filter = new FilenameFilter() {
@@ -196,6 +209,8 @@ public class CompareHeuristicsWithLLMOracle{
 		
 		if(moMappingFolder.isDirectory()) {
 			File[] fileList = moMappingFolder.listFiles(filter);
+			Boolean sameMappingOrder;
+
 			for(File f: fileList) {
 				//open file and extract mappings
 				String ontoLabel = f.getName().substring(0, f.getName().lastIndexOf('.'));
@@ -223,7 +238,6 @@ public class CompareHeuristicsWithLLMOracle{
 		}
 			
 		
-		String outPath = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/testVoting/votingMatrix.txt";
 		comparer.writeVotingMatrixToFile(votingMatrix, outPath, false);
 		
 
@@ -255,13 +269,11 @@ public class CompareHeuristicsWithLLMOracle{
 	        }
 		}
 		System.out.println("The mappings passing the heuristic threshold are " + countPassedThreshold + " out of " + votingMatrix.size());
-		String outPath2 = "/home/valentina/Data/OAEI-output/oaei-2025-anatomy/oaei-human-mouse/testVoting/NaiveHeuristicsMatrix.txt";
 		comparer.writeVotingMatrixToFile(votingMatrix, outPath2, true);
 		
 		
 		// Now compare to reference to get Sensitivity, Specificity and Youden's index
-		String raPath = "/home/valentina/Data/OAEI-input/oaei-2025-input/anatomy-dataset/reference.rdf";
-		Set<MappingObjectStr> referenceMappings = moUtils.readMappingsFromFile(raPath);
+
 		System.out.println("Reference mappings count: " + referenceMappings.size());
 		
 		//Get real positives and real negatives
@@ -271,8 +283,7 @@ public class CompareHeuristicsWithLLMOracle{
 		
 		Set<MappingObjectStr> heuristicsDiscardedMappings = new HashSet<MappingObjectStr>(newMappings);
 		heuristicsDiscardedMappings.removeAll(heuristicsFilteredMappings);
-		System.out.println("Mappings accepted by our heuristics filter: " + heuristicsFilteredMappings.size() +
-				"Mappings discarded by our heuristic filter: " + heuristicsDiscardedMappings.size());
+
 		
 		Hashtable<String, Double> heuStats =comparer.computeSensitivityAndSpecificity(referenceMappings, heuristicsFilteredMappings, heuristicsDiscardedMappings); 
 		
@@ -281,38 +292,40 @@ public class CompareHeuristicsWithLLMOracle{
 		 * LLM-oracle annotated mappings
 		 */
 		
-		
-		//Upload llm-annotation - using default (with msub we get some extra mappings)
-		
-		String llmAnnotatedMappingsPath = "/home/valentina/Data/anatomy-composed-llm-annotated/all-composed-minus-llm-mutualsub.annotated.tsv";
 		Set<MappingObjectStr> llmAnnotatedMappings = moUtils.readAnnotatedMappingsFromTSV(llmAnnotatedMappingsPath,"allMappings");
 		Set<MappingObjectStr> llmTrueAnnotatedMappings = moUtils.readAnnotatedMappingsFromTSV(llmAnnotatedMappingsPath,"onlyTrue");
 		Set<MappingObjectStr> llmFalseAnnotatedMappings = new HashSet<MappingObjectStr>(llmAnnotatedMappings);
 		llmFalseAnnotatedMappings.removeAll(llmTrueAnnotatedMappings);
 		//Sanity check
-		System.out.println("Sanity check, there are " + llmAnnotatedMappings.size() + " mappings in the llm-annotated set vs " 
-		+ votingMatrix.keySet().size() + " in the original new composed mappings");
+
 		
 		// is newMappings subset of llm-annotation?
 		//TODO print out something
 		ProcessComposedMappings sanityChecker = new ProcessComposedMappings();
-		Set<MappingObjectStr> intersectionA = sanityChecker.mappingSetSubtraction(newMappings, llmAnnotatedMappings);
-		Set<MappingObjectStr> intersectionB = sanityChecker.mappingSetSubtraction(llmAnnotatedMappings, newMappings);
+		sanityChecker.mappingSetSubtraction(newMappings, llmAnnotatedMappings);
+		sanityChecker.mappingSetSubtraction(llmAnnotatedMappings, newMappings);
 		
 		Hashtable<String, Double> llmStats =comparer.computeSensitivityAndSpecificity(referenceMappings, llmTrueAnnotatedMappings, llmFalseAnnotatedMappings); 
 		
 		/*
 		 * Print results to screen
 		 */
-		
+		System.out.println("\n\n***Sanity Checks***\n");
+		System.out.println("There are " + newMappings.size() + " new mappings (i.e. composed minus logmap-llm) as baseline");
+		System.out.println("Mappings accepted by our heuristics filter: " + heuristicsFilteredMappings.size() +
+				"\nMappings discarded by our heuristic filter: " + heuristicsDiscardedMappings.size());
+		System.out.println("There are " + llmAnnotatedMappings.size() + " mappings in the llm-annotated set vs " 
+		+ votingMatrix.keySet().size() + " in the original new composed mappings");
+		System.out.println("Mappings accepted by our llm-msub annotation: " + llmTrueAnnotatedMappings.size() +
+				"\nMappings discarded by our llm-msub annotation: " + llmFalseAnnotatedMappings.size());
 		
 		System.out.println("\n***New mappings counts***\n");
 		System.out.println("Real Positives: " + countStats.get("(Real)Positives") + "\t Real Negatives: " + countStats.get("(Real)Negatives"));
 		System.out.println("\n***Heuristics-filtered mappings***\n");
-		System.out.println("\nSensitivity:  " + Math.round(heuStats.get("Sensitivity")*1000d)/1000d + "\t Specificity: " + Math.round(heuStats.get("Specificity")*1000d)/1000d +
+		System.out.println("Sensitivity:  " + Math.round(heuStats.get("Sensitivity")*1000d)/1000d + "\t Specificity: " + Math.round(heuStats.get("Specificity")*1000d)/1000d +
 				"\t Youden Index: " + Math.round(heuStats.get("YoudenIndex")*1000d)/1000d + "\n");
 		System.out.println("\n***LLM-annotated mappings***\n");
-		System.out.println("\nSensitivity:  " + Math.round(llmStats.get("Sensitivity")*1000d)/1000d + "\t Specificity: " + Math.round(llmStats.get("Specificity")*1000d)/1000d +
+		System.out.println("Sensitivity:  " + Math.round(llmStats.get("Sensitivity")*1000d)/1000d + "\t Specificity: " + Math.round(llmStats.get("Specificity")*1000d)/1000d +
 				"\t Youden Index: " + Math.round(llmStats.get("YoudenIndex")*1000d)/1000d + "\n");
 		
 	
