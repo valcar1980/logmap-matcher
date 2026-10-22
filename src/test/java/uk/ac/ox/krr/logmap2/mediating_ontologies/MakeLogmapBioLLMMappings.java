@@ -18,7 +18,9 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
+import uk.ac.ox.krr.logmap2.LogMap2_RepairFacility;
 import uk.ac.ox.krr.logmap2.LogMap3_RepairFacility;
+import uk.ac.ox.krr.logmap2.io.OutPutFilesManager;
 import uk.ac.ox.krr.logmap2.io.ReadFile;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 import uk.ac.ox.krr.logmap2.oaei.reader.FlatAlignmentReader;
@@ -107,6 +109,20 @@ public class MakeLogmapBioLLMMappings {
 
 		// Read only the mappings that were annotated as True
 
+		ProcessComposedMappings MappingOrderChecker = new ProcessComposedMappings();
+		Boolean ComposedHasSameSwapOrderThanDefault = MappingOrderChecker.compareMappingOrder(llmTrueComposedMapsWithLLMDefault,llmDefaultMappings);
+		if(ComposedHasSameSwapOrderThanDefault==false) {
+			System.out.println("Composed mappings have source and target in the reversed order");
+			llmTrueComposedMapsWithLLMDefault = MappingOrderChecker.swapMappingOrder(llmTrueComposedMapsWithLLMDefault);
+		}
+		
+		Boolean ComposedHasSameSwapOrderThanMSub = MappingOrderChecker.compareMappingOrder(llmTrueComposedMapsWithLLMMSub,llmMutualSubMappings);
+		if(ComposedHasSameSwapOrderThanMSub==false) {
+			System.out.println("Composed mappings have source and target in the reversed order");
+			llmTrueComposedMapsWithLLMMSub = MappingOrderChecker.swapMappingOrder(llmTrueComposedMapsWithLLMMSub);
+		}
+		
+		
 		// LLM Default
 		System.out.println("Composed mappings that are true according to LLM(Default): "
 				+ llmTrueComposedMapsWithLLMDefault.size() + " mappings");
@@ -134,10 +150,7 @@ public class MakeLogmapBioLLMMappings {
 		String LogmapLLMBio_msubName = parentPath + "logmapBioLLMMSubResults";
 		moUtils.saveOntologyMappings(LogmapLLMBio_msub, LogmapLLMBio_msubName, onto1_iri, onto2_iri);
 
-		/*
-		 * Single-step repair strategy
-		 */
-		if(repairStrategy.equals("single")) {
+
 		// fixed_mappings are llmDefaultMappings
 		// mappings2review are llmTrueComposedMapsWithLLMDefault
 		LogMap3_RepairFacility TrueWithDefault_repair = new LogMap3_RepairFacility(onto1, onto2, llmDefaultMappings,
@@ -146,11 +159,11 @@ public class MakeLogmapBioLLMMappings {
 		System.out.println("LLM Default - Size of fixed_mappings:" + llmDefaultMappings.size() + "\tmappings to review:"
 				+ llmTrueComposedMapsWithLLMDefault.size() + "\t repaired mappings: " + LogmapBioLLM_default_r.size());
 
+		// Our set of mappings now contains clean composed + logmap-llm ones
 		LogmapBioLLM_default_r.addAll(llmDefaultMappings);
-		// save mappings
-		String LogmapLLmBio_default_rName = parentPath + "logmapBioLLMDefaultResults_repaired";
-		moUtils.saveOntologyMappings(LogmapBioLLM_default_r, LogmapLLmBio_default_rName, onto1_iri, onto2_iri);
-
+		
+		
+		//Same for mutual subsumption
 		// fixed_mappings are llmMutualSubMappings
 		// mappings2review are llmTrueComposedMapsWithLLMDefault
 		LogMap3_RepairFacility TrueWithMSub_repair = new LogMap3_RepairFacility(onto1, onto2, llmMutualSubMappings,
@@ -160,13 +173,55 @@ public class MakeLogmapBioLLMMappings {
 				+ llmTrueComposedMapsWithLLMMSub.size() + "\t repaired mappings: " + LogmapBioLLM_msub_r.size());
 
 		LogmapBioLLM_msub_r.addAll(llmMutualSubMappings);
+		
+		/*
+		 * Single-step repair strategy
+		 */
+		if(repairStrategy.equals("single")) {
+			
+			System.out.println("You opted for a single-step repair strategy, storing now resulting mappings");// save mappings
+		String LogmapLLmBio_default_rName = parentPath + "logmapBioLLMDefaultResults_1stepRepair";
+		moUtils.saveOntologyMappings(LogmapBioLLM_default_r, LogmapLLmBio_default_rName, onto1_iri, onto2_iri);
 
-		String LogmapLLmBio_msub_rName = parentPath + "logmapBioLLMMSubResults_repaired";
+
+		String LogmapLLmBio_msub_rName = parentPath + "logmapBioLLMMSubResults_1stepRepair";		
 		moUtils.saveOntologyMappings(LogmapBioLLM_msub_r, LogmapLLmBio_msub_rName, onto1_iri, onto2_iri);
 		}
 		
 		if(repairStrategy.equals("double")) {
-			System.out.println("Double-step repair strategy not implemented yet!");
+			System.out.println("Adding a second repair step on the combined set logmap-llm + repaired composed mappings");
+			String outputFilename = parentPath + "logmapBioLLMDefaultResults_2stepRepair";
+			//Repair all together just in case
+			LogMap2_RepairFacility logmap2DefaultRepair = new LogMap2_RepairFacility(
+					onto1, 
+					onto2, 
+					LogmapBioLLM_default_r,
+					false, //overlapping
+					false, //always optimal?
+					false, //satisfiability_check,
+					outputFilename);
+			
+			
+			
+			System.out.println("Repaired mappings (ALL): " + logmap2DefaultRepair.getCleanMappings().size());
+			moUtils.saveOntologyMappings(logmap2DefaultRepair.getCleanMappings(),outputFilename, onto1_iri, onto2_iri);
+			
+			String outputFilename2 = parentPath + "logmapBioLLMMSubResults_2stepRepair";
+			//Repair all together just in case
+			LogMap2_RepairFacility logmap2MSubRepair = new LogMap2_RepairFacility(
+					onto1, 
+					onto2, 
+					LogmapBioLLM_msub_r,
+					false, //overlapping
+					false, //always optimal?
+					false, //satisfiability_check,
+					outputFilename);
+			
+			
+			
+			System.out.println("Repaired mappings (ALL): " + logmap2MSubRepair.getCleanMappings().size());
+			moUtils.saveOntologyMappings(logmap2MSubRepair.getCleanMappings(),outputFilename2, onto1_iri, onto2_iri);
+
 		}
 
 	}

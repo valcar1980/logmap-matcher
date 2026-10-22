@@ -1,23 +1,31 @@
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import uk.ac.ox.krr.logmap2.GetRepresentativeLabelsSetForMappings;
 import uk.ac.ox.krr.logmap2.LogMap2_Matcher;
 import uk.ac.ox.krr.logmap2.OntologyLoader;
 import uk.ac.ox.krr.logmap2.bioportal.MediatingOntologyExtractor;
+import uk.ac.ox.krr.logmap2.bioportal.RESTBioPortalAccess;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
-import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
+
 
 /**
  * Takes a parent folder with a config JSON file, reads the input ontologies and finds the mediating ontologies in Bioportal.
@@ -33,6 +41,96 @@ import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
  * @author valcar1980
  */
 public class FetchAndStoreMediatingOntologies {
+	
+	
+public List<String> getOntologyListFromFile(String filePath) throws IOException {
+		
+		// list that holds strings of a file
+        List<String>  listOfStrings = new ArrayList<String>();
+      
+        // load data from file
+        BufferedReader bf = new BufferedReader(new FileReader(filePath));
+      
+        // read entire line as string
+        String line = bf.readLine();
+      
+        // checking for end of file
+        while (line != null) {
+        	if(line.startsWith("#")) {
+        		System.out.println("Skipping MO " + line + "from list of ontologies.");
+                line = bf.readLine();
+
+        	}
+        	else {
+            listOfStrings.add(line);
+            line = bf.readLine();
+
+        	}
+        }
+      
+        // closing bufferreader object
+        bf.close();
+      		
+		return listOfStrings;
+	}	
+			
+	public void saveOntology(String ontoLabel, OWLOntology inputOntology, String basePath){
+	
+	
+			//Create a file for the new format
+			String mo_output_path = basePath+ ontoLabel + ".owl";
+			System.out.println("Storing ontology at " + mo_output_path);
+			File outFile= new File(mo_output_path);
+			OWLOntologyManager onto_manager = OWLManager.createOWLOntologyManager();
+			OWLDocumentFormat format = new RDFXMLDocumentFormat();
+			IRI outputStream = IRI.create(outFile);
+			try {
+				onto_manager.saveOntology(inputOntology, format, outputStream);
+			} catch (OWLOntologyStorageException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	}
+		
+	public OWLOntology CallBioPortal(String onto_label, String base_output_path) {
+		
+		RESTBioPortalAccess bioportal = new RESTBioPortalAccess();
+		if (bioportal.isActive()) {
+		
+			System.out.println("BioPortal is active: ");
+			
+			OWLOntology moDownload = bioportal.downLoadOntology(onto_label, 3);
+			System.out.println("Downloaded ontology" + moDownload.getOntologyID());
+			
+			return moDownload;
+		}
+		else {
+			// TODO return an empty ontology or throw exception
+			return null;
+		}
+	}
+	
+	public void saveOntologiesFromList() {
+		//TODO clean up the main
+		
+	}
+	
+	public boolean checkOntoPath(String ontoStr, String basePath, String fileExtension) {
+		// TODO Auto-generated method stub
+		String ontoPath = basePath + ontoStr + fileExtension;
+		File ontoFile = new File(ontoPath);
+		
+		if (ontoFile.exists() && ontoFile.isFile()) {
+			//System.out.println(ontoFile.getName());
+			return true;
+		}else {
+		return false;
+		}
+	}
+		
+	
+	
+	
 	
 	
 	protected static File findFlatFormatInDir(String dirPath) {
@@ -69,25 +167,27 @@ public class FetchAndStoreMediatingOntologies {
 	
 	public static void main(String[] args) {
 
+		/*
+		 * Input data
+		 */
 		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
 		moUtils.getParentFolder(args);
 		moUtils.readConfigJSON();
 		moUtils.createSubDirectoriesFromParent();
 		System.out.println("\n\n Debug parentPath \t\t" + moUtils.parentPath);
 		
-		// Expected input
+		
 		String onto1_iri = "file:" + moUtils.sourceOntoPath;
 		String onto2_iri = "file:" + moUtils.targetOntoPath;
 		String s2tFilePath = moUtils.sourceToTargetDirPath + "source2target";
 		String storeOntoPath = moUtils.localOntoRepoPath;
 		
 		
-		//Initialisations
-		StoreMediatingOntologies moStorer = new StoreMediatingOntologies();
+		//Other Initialisations
+		FetchAndStoreMediatingOntologies moStorer = new FetchAndStoreMediatingOntologies();
 		List<String> moList = null;
 		CreateMappingsBetweenTwoOntologies onto_mapper = new CreateMappingsBetweenTwoOntologies();
 		Set<MappingObjectStr>  s2tOnto_mappings = Collections.emptySet();
-		MediatingOntologiesUtils mo_fetcher = new MediatingOntologiesUtils();
 		
 		// Conditional input - list of mediating ontologies
 		String listMOFilePath = null;
@@ -164,11 +264,11 @@ public class FetchAndStoreMediatingOntologies {
 			/*
 			 * Identify suitable mediating ontologies and store their label onto a list
 			 */
-			moList = mo_fetcher.extractMediatingOntologyList(onto_matcher);
+			moList = moUtils.extractMediatingOntologyList(onto_matcher);
 		}
 		
 		// save moList to file
-		mo_fetcher.saveListMediatingOntolgies(moList, listMOFilePath);
+		moUtils.saveListMediatingOntolgies(moList, listMOFilePath);
 		
 	}	
 

@@ -89,6 +89,11 @@ public class MediatingOntologiesUtils {
 	 */
 	public Set<MappingObjectStr> readAnnotatedMappingsFromTSV(String fullPath, String readOption) {
 
+		if(!(readOption.equals("onlyTrue") || readOption.equals("allMappings"))) {
+			System.out.println("Wrong TSV reading option provided, check for typos");
+			return null;
+		}
+		
 		Set<MappingObjectStr> mapSet = new HashSet<MappingObjectStr>();
 		try {
 
@@ -132,7 +137,7 @@ public class MediatingOntologiesUtils {
 					}
 				}
 				
-				if(readOption.equals("AllMappings")) {
+				if(readOption.equals("allMappings")) {
 					MappingObjectStr formattedMap = new MappingObjectStr(lineElements[0], lineElements[1],
 							Double.valueOf(lineElements[3]), MappingObjectStr.EQ, 0);
 					mapSet.add(formattedMap);
