@@ -116,7 +116,7 @@ public class ApplyHeuristicsToMappings{
 		writer.write(input_body);
 		
 		String output_body = "Output\n------\n" +
-		"filtered-mappings: " + HeuristicsMappingPath +
+		"filtered-mappings: " + HeuristicsMappingPath + "\n" +
 		"voting-matrix: " +votingMatrixPath + "\n" + 
 		"heuristics-flagging-results: " + HeuristicsResultsPath + "\n" +
 		"\n";
@@ -155,15 +155,16 @@ public class ApplyHeuristicsToMappings{
 		/*
 		 * Input data
 		 */
-		String onto1 ="/home/valentina/Data/OAEI-input/largebio/snomed-nci/oaei_SNOMED_extended_overlapping_fma_nci.owl";
-		String onto2 = "/home/valentina/Data/OAEI-input/largebio/snomed-nci/oaei_NCI_whole_ontology.owl";
-		String mappingPath = "/home/valentina/Data/OAEI_results_bioml2025_largebio2021/largebio/oaei-snomed-nci/composed-mappings-for-llm-annotation/all-composed-minus-llm-mutualsub.txt";
-		String moMappingFolderPath = "/home/valentina/Data/OAEI_results_bioml2025_largebio2021/largebio/oaei-snomed-nci/store-composed-mappings/";
-
+		String onto1 ="/home/valentina/Data/OAEI-input/oaei-2026-input/bio-ml-ontologies/NCIT-bd7a9a8a75e5-Thesaurus.owl";
+		String onto2 = "/home/valentina/Data/OAEI-input/oaei-2026-input/bio-ml-ontologies/DOID-611355c44553-doid.owl";
+		String mappingPath = "/home/valentina/Data/OAEI-output/oaei-2026-bio-ml/oaei-2026-snomed-ncit/config_logmap_bio/composed-mappings-for-llm-annotation-noMondo/all-composed-minus-llm-mutualsub.txt";
+		String moMappingFolderPath = "/home/valentina/Data/OAEI-output/oaei-2026-bio-ml/oaei-2026-snomed-ncit/config_logmap_bio/store-composed-mappings/";
+		String llmAnnotatedInPath = "/home/valentina/Data/composed-llm-annotated/bioml2026-annotated/BioML-qwen-annotated-results/bioml2026-ncit-doid-all-composed-minus-logmapllm-mutualsub.annotated.tsv";
+		String llmTrueOutPath = "/home/valentina/Data/OAEI-output/oaei-2026-bio-ml/oaei-2026-ncit-doid-noMONDO/new-composed-annotated-true";
 		/*
 		 * Output paths
 		 */
-		String baseOutPath = "/home/valentina/Data/OAEI_results_bioml2025_largebio2021/largebio/oaei-snomed-nci/heuristics-filtered-mappings/";
+		String baseOutPath = "/home/valentina/Data/OAEI-output/oaei-2026-bio-ml/oaei-2026-snomed-ncit/config_logmap_bio/heuristics-filtered-mappings/";
 		String votingMatrixPath = baseOutPath + "votingMatrix.txt";
 		String HeuristicsResultsPath = baseOutPath + "NaiveHeuristicsMatrix.txt";
 		String HeuristicsMappingPath = baseOutPath + "HeuristicsFilteredMappings";
@@ -172,119 +173,122 @@ public class ApplyHeuristicsToMappings{
 		File baseOutFolder = new File(baseOutPath);
 		if(!baseOutFolder.exists()) baseOutFolder.mkdir();
 
-
-		/*
-		 * More initialisations
-		 */
+//
+//		/*
+//		 * More initialisations
+//		 */
+//		
+//		Set<MappingObjectStr> newMappings = moUtils.readMappingsFromFile(mappingPath);
+//		File moMappingFolder = new File(moMappingFolderPath);
+//
+//		
+//		/*
+//		 * Create the voting matrix, key: mapping, value: [] empty array, which will be filled later
+//		 */
+//		
+//		CompareHeuristicsWithLLMOracle comparer = new CompareHeuristicsWithLLMOracle();
+//		
+//		HashMap<MappingObjectStr, MappingMetadata> votingMatrix = new HashMap<MappingObjectStr, MappingMetadata>();
+//		for(MappingObjectStr mapping: newMappings) {
+//			
+//			MappingMetadata meta = new MappingMetadata();
+//			meta.setConfidence(mapping.getConfidence());
+//			//Assign confidence and initialise the rest
+//			votingMatrix.put(mapping, meta);
+//		}
+//		
+//		//System.out.println("Sanity check, there are " + votingMatrix.keySet().size() + " mappings in the voting matrix");
+//		
+//		/*
+//		 * Retrieve source of mapping from all mediating ontologies
+//		 */
+//		
+//
+//		// We filter txt only, because the folder contains also a tsv for each MO
+//		//TODO use hashmap key uniqueness instead
+//		FilenameFilter filter = new FilenameFilter() {
+//
+//            public boolean accept(File f, String name)
+//            {
+//                return (name.endsWith(".txt"));
+//            }
+//        };
+//		
+//		if(moMappingFolder.isDirectory()) {
+//			File[] fileList = moMappingFolder.listFiles(filter);
+//			Boolean sameMappingOrder;
+//
+//			for(File f: fileList) {
+//				//open file and extract mappings
+//				String ontoLabel = f.getName().substring(0, f.getName().lastIndexOf('.'));
+//				System.out.println("Extracting votes for mediating ontology " + ontoLabel);
+//				Set<MappingObjectStr>  moMappings = moUtils.readMappingsFromFile(f.getAbsolutePath());
+//				if(moMappings.isEmpty()==true) continue; //skipping empty sets
+//				//loop through mappings
+//				sameMappingOrder= cheekySwapper.compareMappingOrder(moMappings, newMappings);
+//				if (sameMappingOrder==false) {
+//					moMappings = cheekySwapper.swapMappingOrder(moMappings);
+//					System.out.println("Had to reverse mapping directions for ontology " + ontoLabel);
+//				}
+//				for(MappingObjectStr map:moMappings) {
+//					if(newMappings.contains(map)) {
+//
+//						MappingMetadata currentMeta = votingMatrix.get(map);
+//						MappingMetadata updateMeta = new MappingMetadata(currentMeta);
+//						
+//						updateMeta.addToVotingCount();
+//						updateMeta.addToMOList(ontoLabel);
+//						votingMatrix.put(map, updateMeta);
+//					}
+//				}
+//			}
+//		}
+//			
+//		
+//		comparer.writeVotingMatrixToFile(votingMatrix, votingMatrixPath, false);
+//		
+//
+//		
+//		/*
+//		 * Apply heuristics to mappings
+//		 */
+//		
+//		// At this point I could even load a votingMatrix file and apply any heuristic I want
+//		 System.out.println("Heuristics based on 2+ votes and confidence >= " + comparer.confidenceLowThreshold 
+//		 + "or 1 vote and confidence >= " + comparer.confidenceHighThreshold);
+//		 Set<MappingObjectStr> heuristicsFilteredMappings = new HashSet<MappingObjectStr>();
+//		 Integer countPassedThreshold = 0;
+//		for(HashMap.Entry<MappingObjectStr,MappingMetadata> entry:votingMatrix.entrySet()) {
+//	        {
+//	            MappingObjectStr mapping = entry.getKey();
+//	            MappingMetadata currentTabular = entry.getValue();
+//	            MappingMetadata updateTabular = new MappingMetadata(currentTabular);
+//	            
+//	            //use key and value
+//	            Boolean passThreshold = comparer.applyNaiveHeuristicFilter(currentTabular.getConfidence(), currentTabular.getVotingCount());
+//	            updateTabular.setPassThreshold(passThreshold);
+//	            votingMatrix.put(mapping, updateTabular);
+//	            
+//	            if(passThreshold == true) {
+//	            	countPassedThreshold++;
+//	            	heuristicsFilteredMappings.add(mapping);
+//	            }
+//	        }
+//		}
+//		System.out.println("The mappings passing the heuristic threshold are " + countPassedThreshold + " out of " + votingMatrix.size());
+//		comparer.writeVotingMatrixToFile(votingMatrix, HeuristicsMappingPath, true);
+//		
+//		moUtils.saveOntologyMappings(heuristicsFilteredMappings, HeuristicsMappingPath, onto1, onto2);
+//		Set<MappingObjectStr> heuristicsDiscardedMappings = new HashSet<MappingObjectStr>(newMappings);
+//		heuristicsDiscardedMappings.removeAll(heuristicsFilteredMappings);
+//
+//
+//		printExperimentStatsToScreen(newMappings, heuristicsFilteredMappings, heuristicsDiscardedMappings);
+//		saveExperimentDataLineageToFile(onto1, onto2, mappingPath, moMappingFolderPath,
+//				votingMatrixPath, HeuristicsResultsPath, HeuristicsMappingPath);
 		
-		Set<MappingObjectStr> newMappings = moUtils.readMappingsFromFile(mappingPath);
-		File moMappingFolder = new File(moMappingFolderPath);
-
+	
 		
-		/*
-		 * Create the voting matrix, key: mapping, value: [] empty array, which will be filled later
-		 */
-		
-		CompareHeuristicsWithLLMOracle comparer = new CompareHeuristicsWithLLMOracle();
-		
-		HashMap<MappingObjectStr, MappingMetadata> votingMatrix = new HashMap<MappingObjectStr, MappingMetadata>();
-		for(MappingObjectStr mapping: newMappings) {
-			
-			MappingMetadata meta = new MappingMetadata();
-			meta.setConfidence(mapping.getConfidence());
-			//Assign confidence and initialise the rest
-			votingMatrix.put(mapping, meta);
-		}
-		
-		//System.out.println("Sanity check, there are " + votingMatrix.keySet().size() + " mappings in the voting matrix");
-		
-		/*
-		 * Retrieve source of mapping from all mediating ontologies
-		 */
-		
-
-		// We filter txt only, because the folder contains also a tsv for each MO
-		//TODO use hashmap key uniqueness instead
-		FilenameFilter filter = new FilenameFilter() {
-
-            public boolean accept(File f, String name)
-            {
-                return (name.endsWith(".txt"));
-            }
-        };
-		
-		if(moMappingFolder.isDirectory()) {
-			File[] fileList = moMappingFolder.listFiles(filter);
-			Boolean sameMappingOrder;
-
-			for(File f: fileList) {
-				//open file and extract mappings
-				String ontoLabel = f.getName().substring(0, f.getName().lastIndexOf('.'));
-				System.out.println("Extracting votes for mediating ontology " + ontoLabel);
-				Set<MappingObjectStr>  moMappings = moUtils.readMappingsFromFile(f.getAbsolutePath());
-				if(moMappings.isEmpty()==true) continue; //skipping empty sets
-				//loop through mappings
-				sameMappingOrder= cheekySwapper.compareMappingOrder(moMappings, newMappings);
-				if (sameMappingOrder==false) {
-					moMappings = cheekySwapper.swapMappingOrder(moMappings);
-					System.out.println("Had to reverse mapping directions for ontology " + ontoLabel);
-				}
-				for(MappingObjectStr map:moMappings) {
-					if(newMappings.contains(map)) {
-
-						MappingMetadata currentMeta = votingMatrix.get(map);
-						MappingMetadata updateMeta = new MappingMetadata(currentMeta);
-						
-						updateMeta.addToVotingCount();
-						updateMeta.addToMOList(ontoLabel);
-						votingMatrix.put(map, updateMeta);
-					}
-				}
-			}
-		}
-			
-		
-		comparer.writeVotingMatrixToFile(votingMatrix, votingMatrixPath, false);
-		
-
-		
-		/*
-		 * Apply heuristics to mappings
-		 */
-		
-		// At this point I could even load a votingMatrix file and apply any heuristic I want
-		 System.out.println("Heuristics based on 2+ votes and confidence >= " + comparer.confidenceLowThreshold 
-		 + "or 1 vote and confidence >= " + comparer.confidenceHighThreshold);
-		 Set<MappingObjectStr> heuristicsFilteredMappings = new HashSet<MappingObjectStr>();
-		 Integer countPassedThreshold = 0;
-		for(HashMap.Entry<MappingObjectStr,MappingMetadata> entry:votingMatrix.entrySet()) {
-	        {
-	            MappingObjectStr mapping = entry.getKey();
-	            MappingMetadata currentTabular = entry.getValue();
-	            MappingMetadata updateTabular = new MappingMetadata(currentTabular);
-	            
-	            //use key and value
-	            Boolean passThreshold = comparer.applyNaiveHeuristicFilter(currentTabular.getConfidence(), currentTabular.getVotingCount());
-	            updateTabular.setPassThreshold(passThreshold);
-	            votingMatrix.put(mapping, updateTabular);
-	            
-	            if(passThreshold == true) {
-	            	countPassedThreshold++;
-	            	heuristicsFilteredMappings.add(mapping);
-	            }
-	        }
-		}
-		System.out.println("The mappings passing the heuristic threshold are " + countPassedThreshold + " out of " + votingMatrix.size());
-		comparer.writeVotingMatrixToFile(votingMatrix, HeuristicsMappingPath, true);
-		
-		moUtils.saveOntologyMappings(heuristicsFilteredMappings, HeuristicsMappingPath, onto1, onto2);
-		Set<MappingObjectStr> heuristicsDiscardedMappings = new HashSet<MappingObjectStr>(newMappings);
-		heuristicsDiscardedMappings.removeAll(heuristicsFilteredMappings);
-
-
-		printExperimentStatsToScreen(newMappings, heuristicsFilteredMappings, heuristicsDiscardedMappings);
-		saveExperimentDataLineageToFile(onto1, onto2, mappingPath, moMappingFolderPath,
-				votingMatrixPath, HeuristicsResultsPath, HeuristicsMappingPath);
 	
 }}
 

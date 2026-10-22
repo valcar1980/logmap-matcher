@@ -154,7 +154,7 @@ public class CreateComposedMappings{
 		config = config.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
 		onto_manager.setOntologyLoaderConfiguration(config);
 		
-		StoreMediatingOntologies moStorer = new StoreMediatingOntologies();
+		FetchAndStoreMediatingOntologies moStorer = new FetchAndStoreMediatingOntologies();
 		CreateMappingsBetweenTwoOntologies simpleMapper = new CreateMappingsBetweenTwoOntologies();
 		
 		/*
