@@ -32,111 +32,20 @@ import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 import uk.ac.ox.krr.logmap2.oaei.reader.FlatAlignmentReader;
 import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
 
-
 public class CompareHeuristicsWithLLMOracle{
 	final double confidenceLowThreshold = Parameters.confidence_composed_mappings2; 
 	final double confidenceHighThreshold = Parameters.confidence_composed_mappings1;
 	
 	
-	public Hashtable<String, Double> computeSensitivityAndSpecificity(Set<MappingObjectStr> referenceMappings, 
-			Set<MappingObjectStr> testPosMappings, Set<MappingObjectStr> testNegMappings) {
-		double sensitivity;
-		double specificity;
-		double youdenIndex;
-		
-		int truePos; Set<MappingObjectStr> truePosSet = new HashSet<MappingObjectStr>();
-		int falsePos;Set<MappingObjectStr> falsePosSet = new HashSet<MappingObjectStr>();
-		int falseNeg;Set<MappingObjectStr> falseNegSet = new HashSet<MappingObjectStr>();
-		int trueNeg;Set<MappingObjectStr> trueNegSet = new HashSet<MappingObjectStr>();
-		
-		for(MappingObjectStr pmap: testPosMappings) {
-			if (referenceMappings.contains(pmap)) truePosSet.add(pmap);
-			else falsePosSet.add(pmap);
-			
-		for (MappingObjectStr nmap: testNegMappings) {
-			if (referenceMappings.contains(nmap)) falseNegSet.add(nmap);
-			else trueNegSet.add(nmap);
-			
-		}
-		}
-		
-		truePos = truePosSet.size();//test says yes and reference says yes
-		falsePos = falsePosSet.size();//test says yes but reference says no(i.e. map is not present in the reference)
-		falseNeg = falseNegSet.size();// test says no but reference says yes
- 		trueNeg = trueNegSet.size();//test say no and reference say no (i.e. map is not present in the reference)
-		
-		sensitivity = (double)(truePos)/ ((double)(truePos + falseNeg)); // probability of our test to detect a mapping when the mapping is in the reference
-		specificity = (double)(trueNeg)/ ((double)(trueNeg + falsePos)); // probability of our test to discard a mapping when the mapping is not in the reference
-		youdenIndex = sensitivity + specificity -1.0;
-		Hashtable<String, Double> diagnosticStats = new Hashtable<String, Double> ();
-		diagnosticStats.put("Sensitivity", sensitivity);
-		diagnosticStats.put("Specificity", specificity);
-		diagnosticStats.put("YoudenIndex", youdenIndex);
 
-		return diagnosticStats;
-	}
 	
 	
 	
-	
-	public Boolean applyNaiveHeuristicFilter(Double confidence, Integer voteCount) {
-		Boolean passThreshold = false;
-		
-		if((voteCount>=2 && confidence > confidenceLowThreshold) ||
-		(voteCount == 1 && confidence > confidenceHighThreshold)){
-			passThreshold = true;
-		}
-		
-		
-		return passThreshold;
-	}
+
 	
 	
-	
-	
-	/**
-	 * Create a tabular file with all the mappings and how many mediating ontologies voted for each of them
-	 * @param votingMatrix 
-	 * @param outPath
-	 */
-	public void writeVotingMatrixToFile(HashMap<MappingObjectStr, MappingMetadata> votingMatrix,
-			String outPath, Boolean displayPassThreshold) {
-		File votingMatrixFile = new File(outPath);
-		BufferedWriter bf = null;
 
-		try {
 
-			// create new BufferedWriter for the output file
-			bf = new BufferedWriter(new FileWriter(votingMatrixFile));
-			if(displayPassThreshold==false) {
-				bf.write("#\t Mapping \t Confidence \t VoteCount \t MediatingOntologies");}
-			else {
-				bf.write("#\t Mapping \t Confidence \t VoteCount \t passThreshold \t MediatingOntologies");
-
-			}
-			bf.newLine();
-
-			for (MappingObjectStr key : votingMatrix.keySet()) {
-				// System.out.println(key);
-
-				// put key and value separated by a colon
-				bf.write(key + "\t" + votingMatrix.get(key).toString(displayPassThreshold));
-
-				// new line
-				bf.newLine();
-			}
-
-			bf.flush();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		try {
-			bf.close();
-		} catch (Exception e) {
-		}
-
-	}
 	
 	
 	public static void main (String[] args) {
@@ -146,7 +55,7 @@ public class CompareHeuristicsWithLLMOracle{
 		 */
 		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
 		ProcessComposedMappings cheekySwapper = new ProcessComposedMappings();
-		
+		ApplyHeuristicsToMappings comparer = new ApplyHeuristicsToMappings();
 		/*
 		 * Input data
 		 */
@@ -179,7 +88,7 @@ public class CompareHeuristicsWithLLMOracle{
 		 * Create the voting matrix, key: mapping, value: [] empty array, which will be filled later
 		 */
 		
-		CompareHeuristicsWithLLMOracle comparer = new CompareHeuristicsWithLLMOracle();
+	
 		
 		HashMap<MappingObjectStr, MappingMetadata> votingMatrix = new HashMap<MappingObjectStr, MappingMetadata>();
 		for(MappingObjectStr mapping: newMappings) {
@@ -285,7 +194,7 @@ public class CompareHeuristicsWithLLMOracle{
 		heuristicsDiscardedMappings.removeAll(heuristicsFilteredMappings);
 
 		
-		Hashtable<String, Double> heuStats =comparer.computeSensitivityAndSpecificity(referenceMappings, heuristicsFilteredMappings, heuristicsDiscardedMappings); 
+		Hashtable<String, Double> heuStats =moUtils.computeSensitivityAndSpecificity(referenceMappings, heuristicsFilteredMappings, heuristicsDiscardedMappings); 
 		
 		
 		/*
@@ -305,7 +214,7 @@ public class CompareHeuristicsWithLLMOracle{
 		sanityChecker.mappingSetSubtraction(newMappings, llmAnnotatedMappings);
 		sanityChecker.mappingSetSubtraction(llmAnnotatedMappings, newMappings);
 		
-		Hashtable<String, Double> llmStats =comparer.computeSensitivityAndSpecificity(referenceMappings, llmTrueAnnotatedMappings, llmFalseAnnotatedMappings); 
+		Hashtable<String, Double> llmStats =moUtils.computeSensitivityAndSpecificity(referenceMappings, llmTrueAnnotatedMappings, llmFalseAnnotatedMappings); 
 		
 		/*
 		 * Print results to screen

@@ -618,6 +618,44 @@ public class MediatingOntologiesUtils {
 	}
 	
 	
+	public Hashtable<String, Double> computeSensitivityAndSpecificity(Set<MappingObjectStr> referenceMappings, 
+			Set<MappingObjectStr> testPosMappings, Set<MappingObjectStr> testNegMappings) {
+		double sensitivity;
+		double specificity;
+		double youdenIndex;
+		
+		int truePos; Set<MappingObjectStr> truePosSet = new HashSet<MappingObjectStr>();
+		int falsePos;Set<MappingObjectStr> falsePosSet = new HashSet<MappingObjectStr>();
+		int falseNeg;Set<MappingObjectStr> falseNegSet = new HashSet<MappingObjectStr>();
+		int trueNeg;Set<MappingObjectStr> trueNegSet = new HashSet<MappingObjectStr>();
+		
+		for(MappingObjectStr pmap: testPosMappings) {
+			if (referenceMappings.contains(pmap)) truePosSet.add(pmap);
+			else falsePosSet.add(pmap);
+			
+		for (MappingObjectStr nmap: testNegMappings) {
+			if (referenceMappings.contains(nmap)) falseNegSet.add(nmap);
+			else trueNegSet.add(nmap);
+			
+		}
+		}
+		
+		truePos = truePosSet.size();//test says yes and reference says yes
+		falsePos = falsePosSet.size();//test says yes but reference says no(i.e. map is not present in the reference)
+		falseNeg = falseNegSet.size();// test says no but reference says yes
+ 		trueNeg = trueNegSet.size();//test say no and reference say no (i.e. map is not present in the reference)
+		
+		sensitivity = (double)(truePos)/ ((double)(truePos + falseNeg)); // probability of our test to detect a mapping when the mapping is in the reference
+		specificity = (double)(trueNeg)/ ((double)(trueNeg + falsePos)); // probability of our test to discard a mapping when the mapping is not in the reference
+		youdenIndex = sensitivity + specificity -1.0;
+		Hashtable<String, Double> diagnosticStats = new Hashtable<String, Double> ();
+		diagnosticStats.put("Sensitivity", sensitivity);
+		diagnosticStats.put("Specificity", specificity);
+		diagnosticStats.put("YoudenIndex", youdenIndex);
+
+		return diagnosticStats;
+	}
+	
 	
 	public static void main(String[] args) {
 		
