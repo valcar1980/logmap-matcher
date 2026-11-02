@@ -103,5 +103,15 @@ public class MappingMetadata {
 	    	
 	    }
 	    	
+	    public class SingleMappingMetadata {
+	    	
+	    }
+	    
+	    public class MappingSetMetadata {
+	    }
+	    
+	    public class OntologyAlignmentMetadata {
+	    	
+	    }
 	    	
 }
