@@ -1,4 +1,4 @@
-package uk.ac.ox.krr.logmap2.mediating_ontologies;
+package uk.ac.ox.krr.logmap2.test.mediating_ontologies;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
