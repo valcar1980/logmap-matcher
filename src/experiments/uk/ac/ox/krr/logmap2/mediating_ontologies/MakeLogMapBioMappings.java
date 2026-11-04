@@ -9,9 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.semanticweb.owlapi.model.OWLOntology;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import uk.ac.ox.krr.logmap2.LogMap2_RepairFacility;
+import uk.ac.ox.krr.logmap2.LogMap3_RepairFacility;
+import uk.ac.ox.krr.logmap2.OntologyLoader;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
 public class MakeLogMapBioMappings{
@@ -105,68 +110,77 @@ public class MakeLogMapBioMappings{
 	
 	public Set<MappingObjectStr> runLogMapBioExperiment(HashMap<String,String> singleExperimentConfig, String parentFolderPath) {
 		System.out.println("I am running a LogMapBio experiment");
-		Set<MappingObjectStr> logMapBioMaps = new HashSet<MappingObjectStr>();
+		Set<MappingObjectStr> logMapBioMaps;
 		try {
-			String sourceOnto = singleExperimentConfig.get("source_onto_path");
-			String targetOnto = singleExperimentConfig.get("target_onto_path");
-		// get logmap mappings
-		String logMapPath = singleExperimentConfig.get("logmap_mappings_path");
-		System.out.println("logmap path " + logMapPath);
-		Set<MappingObjectStr> logMaps = moUtils.readMappingsFromFile(logMapPath);
-		// get mo unique mappings (minus logmap)
-		String moMapsPath = singleExperimentConfig.get("unique_mo_mappings_path");
-		System.out.println("mo maps path " + moMapsPath);
-		Set<MappingObjectStr> uniqueMOMaps = moUtils.readMappingsFromFile(moMapsPath);
-		// get MO folder with individual composed mappings sets
-		String moComposedFolderPath =  singleExperimentConfig.get("mo_composed_mappings_directory");
-		
-		// apply heuristics to unique mappings
-		ApplyHeuristicsToMappings heuristical = new ApplyHeuristicsToMappings(sourceOnto,targetOnto, moMapsPath,moComposedFolderPath,parentFolderPath);
-		heuristical.runFullThing();
-		Boolean displayPassThreshold = true;
-		heuristical.writeHeuristicsVotingMatrixToFile(displayPassThreshold);
-		Boolean saveDiscarded = true;
-		heuristical.saveHeuristicsMappings(saveDiscarded);		
-		heuristical.printExperimentStatsToScreen();
-		heuristical.saveExperimentDataLineageToFile();
-		
-		
-		// apply repair to unique mappings
-		// combine logmap and new repaired mappings
-		
-		
-		
-		
+			String sourceOntoPath = singleExperimentConfig.get("source_onto_path");
+			String targetOntoPath = singleExperimentConfig.get("target_onto_path");
+			// get logmap mappings
+			String logMapPath = singleExperimentConfig.get("logmap_mappings_path");
+			System.out.println("logmap path " + logMapPath);
+			Set<MappingObjectStr> logMaps = moUtils.readMappingsFromFile(logMapPath);
+			// get mo unique mappings (minus logmap)
+			String moMapsPath = singleExperimentConfig.get("unique_mo_mappings_path");
+			System.out.println("mo maps path " + moMapsPath);
+			Set<MappingObjectStr> newMappings = moUtils.readMappingsFromFile(moMapsPath);
+			// get MO folder with individual composed mappings sets
+			String moComposedFolderPath =  singleExperimentConfig.get("mo_composed_mappings_directory");
+			
+			// apply heuristics to unique mappings
+			ApplyHeuristicsToMappings heuristical = new ApplyHeuristicsToMappings(sourceOntoPath,targetOntoPath, moMapsPath,moComposedFolderPath,parentFolderPath);
+			heuristical.runFullThing();
+			Boolean displayPassThreshold = true;
+			heuristical.writeHeuristicsVotingMatrixToFile(displayPassThreshold);
+			Boolean saveDiscarded = true;
+			heuristical.saveHeuristicsMappings(saveDiscarded);		
+			heuristical.printExperimentStatsToScreen();
+			heuristical.saveExperimentDataLineageToFile();
+			
+			
+			// apply repair to unique mappings	
+			OWLOntology sourceOnto = new OntologyLoader("file:" + sourceOntoPath).getOWLOntology();
+			OWLOntology targetOnto = new OntologyLoader("file:" + targetOntoPath).getOWLOntology();
+			LogMap3_RepairFacility repairOperator = new LogMap3_RepairFacility(sourceOnto,targetOnto,logMaps,newMappings);
+			Set<MappingObjectStr> newMappings_repaired = repairOperator.getCleanMappings();
+			
+			
+			// combine logmap and new repaired mappings
+			logMapBioMaps = new HashSet<MappingObjectStr>(newMappings_repaired);
+			logMapBioMaps.addAll(logMaps);
+			
 		} catch(Exception e) {
 			e.printStackTrace();
 			return null;
 		}
-
-		
+	
 		return logMapBioMaps;
 	}
 
 	public static void main(String[] args) {
 		String experimentPath = "/home/valentina/Data/logmapbiollm-paper/CTLM28_mappings_for_OAEI_evaluator/experiment_small.json";
 		String parentFolderPath = "/home/valentina/Data/logmapbiollm-paper/CTLM28_mappings_for_OAEI_evaluator/mappings/";
-		
 		MakeLogMapBioMappings fullExperimentSet = new MakeLogMapBioMappings();
 		fullExperimentSet.readExperimentList(experimentPath);
 		fullExperimentSet.printExperimentList();
 		Map<String,JsonNode> tmp = fullExperimentSet.experimentSet;
 		for( String exp:tmp.keySet()) {
 			JsonNode tmpExp = tmp.get(exp);
-			System.out.println("Experiment: " + exp);
+			File checkFolder = new File(parentFolderPath,exp);
+			if (checkFolder.exists() && checkFolder.isDirectory()) {
+				System.out.println("Already exists, skipping experiment: " + exp);
+			}
+			else {
+				
+				System.out.println("New experiment: " + exp);
 			HashMap<String,String> singleExperimentConfig = fullExperimentSet.readExperimentConfigs(tmpExp);
 			
 			if(singleExperimentConfig.get("experiment_type").equals("logmapbio")) {
 				String outputPath = new File(parentFolderPath, exp).toString();
 				Set<MappingObjectStr> logMapBioMaps = fullExperimentSet.runLogMapBioExperiment(singleExperimentConfig,outputPath);
-				
-				//moUtils.saveOntologyMappings(logMapBioMaps, outPutPath, experimentPath, parentFolderPath);
+				//moUtils.saveOntologyMappings(logMapBioMaps, parentFolderPath, sourceOntoPath, targetOntoPath);
+				}
 			}
 		}
-		
 	}
-	
 }
+
+	

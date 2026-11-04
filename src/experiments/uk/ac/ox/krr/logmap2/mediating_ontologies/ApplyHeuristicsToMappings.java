@@ -47,9 +47,11 @@ public class ApplyHeuristicsToMappings{
 		moMappingsFolderPath = moDir;
 		baseOutputPath = baseDir;
 		
-
+		File base = new File(baseOutputPath);
+		if (!base.exists()) base.mkdir();
 		
 		heuristicsVotingMatrix = new HashMap<MappingObjectStr, MappingMetadata>();
+		
 		try {
 			newMappings = moUtils.readMappingsFromFile(newMappingsPath);
 			
@@ -58,15 +60,10 @@ public class ApplyHeuristicsToMappings{
 			e.printStackTrace();
 		}
 		
-		File base = new File(baseOutputPath);
-		if (!base.exists()) {
-			base.mkdir();
-
-		} else if (base.isDirectory()) {
-			heuristicsVotingMatrixPath = new File(base, "mappings_with_heuristics_voting.txt").toString();
-			heuristicsFilteredMappingsPath = new File(base, "heuristics_filtered_mappings").toString();
-			heursticsDiscardedMappingsPath = new File(base, "heuristics_discarded_mappings").toString();
-		}
+		heuristicsVotingMatrixPath = new File(base, "mappings_with_heuristics_voting.txt").toString();
+		heuristicsFilteredMappingsPath = new File(base, "heuristics_filtered_mappings").toString();
+		heursticsDiscardedMappingsPath = new File(base, "heuristics_discarded_mappings").toString();
+		
 	}
 	
 
