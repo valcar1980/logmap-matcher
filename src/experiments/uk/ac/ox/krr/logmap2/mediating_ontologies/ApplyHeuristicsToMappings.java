@@ -47,6 +47,7 @@ public class ApplyHeuristicsToMappings{
 		moMappingsFolderPath = moDir;
 		baseOutputPath = baseDir;
 		
+
 		
 		heuristicsVotingMatrix = new HashMap<MappingObjectStr, MappingMetadata>();
 		try {
@@ -177,14 +178,9 @@ public class ApplyHeuristicsToMappings{
 	}
 	
 	
-	public void runFullThing(String baseOutPath){
+	public void runFullThing(){
 		
-		/*
-		 * Set up folders for storing output
-		 */
-		
-		File baseOutFolder = new File(baseOutPath);
-		if(!baseOutFolder.exists()) baseOutFolder.mkdir();
+	
 		File moMappingFolder = new File(moMappingsFolderPath);
 
 		
@@ -277,7 +273,7 @@ public class ApplyHeuristicsToMappings{
 	
 	}
 	
-	private void saveHeuristicsMappings(Boolean saveDiscarded) {
+	public void saveHeuristicsMappings(Boolean saveDiscarded) {
 
 		moUtils.saveOntologyMappings(heuristicsFilteredMappings, heuristicsFilteredMappingsPath, sourceOntoPath,targetOntoPath);
 		if(saveDiscarded == true) {
@@ -301,7 +297,7 @@ public class ApplyHeuristicsToMappings{
 
 
 		ApplyHeuristicsToMappings heuristical = new ApplyHeuristicsToMappings(onto1, onto2, mappingPath, moMappingFolderPath,baseOutPath);
-		heuristical.runFullThing(baseOutPath);
+		heuristical.runFullThing();
 		//System.out.println("The mappings passing the heuristic threshold are " + countPassedThreshold + " out of " + heuristicsVotingMatrix.size());
 		Boolean displayPassThreshold = true;
 		heuristical.writeHeuristicsVotingMatrixToFile(displayPassThreshold);

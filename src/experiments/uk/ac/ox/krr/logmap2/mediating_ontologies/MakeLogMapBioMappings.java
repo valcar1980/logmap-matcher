@@ -12,7 +12,10 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
+
 public class MakeLogMapBioMappings{
+	MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
 	public Map<String,JsonNode> experimentSet;
 	
 	public MakeLogMapBioMappings(){
@@ -52,8 +55,8 @@ public class MakeLogMapBioMappings{
 	public HashMap<String,String> readExperimentConfigs(JsonNode experimentConfig) {
 		HashMap<String,String> singleExperimentConfig = new HashMap<String,String>();
 		String experimentType = null;
-		String sourcePath;
-		String targetPath;
+		String sourcePath = null;
+		String targetPath = null;
 		if(!experimentConfig.isObject()) {
 			System.out.println("Incorrect json element, existing with null");
 			
@@ -61,19 +64,24 @@ public class MakeLogMapBioMappings{
 			experimentType = experimentConfig.path("experiment_type").asText();
 			sourcePath   = experimentConfig.path("source_onto_path").asText();
 	        targetPath   = experimentConfig.path("target_onto_path").asText();
-	        //System.out.println("\t source: " + sourcePath + "\n\t target: " + targetPath);
-		
-		
+	        
+			singleExperimentConfig.put("experiment_type", experimentType);
+			singleExperimentConfig.put("source_onto_path", sourcePath);
+			singleExperimentConfig.put("target_onto_path", targetPath );
 		
 			if(experimentType.equals("logmapbio")) {
 				System.out.println("This is a logmapbio experiment");
 				System.out.println("\t source: " + sourcePath + "\n\t target: " + targetPath);	
+				String logMapPath = experimentConfig.path("logmap_mappings_path").asText();
+				String moMapPath = experimentConfig.path("unique_mo_mappings_path").asText();
+				String moComposedFolderPath = experimentConfig.path("mo_composed_mappings_directory").asText();
+				
+				singleExperimentConfig.put("logmap_mappings_path", logMapPath );
+				singleExperimentConfig.put("unique_mo_mappings_path", moMapPath );
+				singleExperimentConfig.put("mo_composed_mappings_directory", moComposedFolderPath );
 				
 			}
 		}
-		
-		singleExperimentConfig.put("experiment_type", experimentType);
-		
 		
 		return singleExperimentConfig;
 		
@@ -88,14 +96,60 @@ public class MakeLogMapBioMappings{
 		}
 	}
 	
+	/**
+	 * Computes LogMapBio mappings via the Mediating Ontologies and applying heuristics to filter
+	 * @param singleExperimentConfig
+	 * @param parentFolderPath folder where you want all the mappings and logs to be stored
+	 * @return
+	 */
 	
-	public void runLogMapBioExperiment() {
+	public Set<MappingObjectStr> runLogMapBioExperiment(HashMap<String,String> singleExperimentConfig, String parentFolderPath) {
 		System.out.println("I am running a LogMapBio experiment");
+		Set<MappingObjectStr> logMapBioMaps = new HashSet<MappingObjectStr>();
+		try {
+			String sourceOnto = singleExperimentConfig.get("source_onto_path");
+			String targetOnto = singleExperimentConfig.get("target_onto_path");
+		// get logmap mappings
+		String logMapPath = singleExperimentConfig.get("logmap_mappings_path");
+		System.out.println("logmap path " + logMapPath);
+		Set<MappingObjectStr> logMaps = moUtils.readMappingsFromFile(logMapPath);
+		// get mo unique mappings (minus logmap)
+		String moMapsPath = singleExperimentConfig.get("unique_mo_mappings_path");
+		System.out.println("mo maps path " + moMapsPath);
+		Set<MappingObjectStr> uniqueMOMaps = moUtils.readMappingsFromFile(moMapsPath);
+		// get MO folder with individual composed mappings sets
+		String moComposedFolderPath =  singleExperimentConfig.get("mo_composed_mappings_directory");
+		
+		// apply heuristics to unique mappings
+		ApplyHeuristicsToMappings heuristical = new ApplyHeuristicsToMappings(sourceOnto,targetOnto, moMapsPath,moComposedFolderPath,parentFolderPath);
+		heuristical.runFullThing();
+		Boolean displayPassThreshold = true;
+		heuristical.writeHeuristicsVotingMatrixToFile(displayPassThreshold);
+		Boolean saveDiscarded = true;
+		heuristical.saveHeuristicsMappings(saveDiscarded);		
+		heuristical.printExperimentStatsToScreen();
+		heuristical.saveExperimentDataLineageToFile();
+		
+		
+		// apply repair to unique mappings
+		// combine logmap and new repaired mappings
+		
+		
+		
+		
+		} catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+
+		
+		return logMapBioMaps;
 	}
 
 	public static void main(String[] args) {
-		String experimentPath = "/home/valentina/Data/logmapbiollm-paper/CTLM28_mappings_for_OAEI_evaluator/experiment_logmapbio_mappings.json";
+		String experimentPath = "/home/valentina/Data/logmapbiollm-paper/CTLM28_mappings_for_OAEI_evaluator/experiment_small.json";
 		String parentFolderPath = "/home/valentina/Data/logmapbiollm-paper/CTLM28_mappings_for_OAEI_evaluator/mappings/";
+		
 		MakeLogMapBioMappings fullExperimentSet = new MakeLogMapBioMappings();
 		fullExperimentSet.readExperimentList(experimentPath);
 		fullExperimentSet.printExperimentList();
@@ -106,7 +160,10 @@ public class MakeLogMapBioMappings{
 			HashMap<String,String> singleExperimentConfig = fullExperimentSet.readExperimentConfigs(tmpExp);
 			
 			if(singleExperimentConfig.get("experiment_type").equals("logmapbio")) {
-				fullExperimentSet.runLogMapBioExperiment();
+				String outputPath = new File(parentFolderPath, exp).toString();
+				Set<MappingObjectStr> logMapBioMaps = fullExperimentSet.runLogMapBioExperiment(singleExperimentConfig,outputPath);
+				
+				//moUtils.saveOntologyMappings(logMapBioMaps, outPutPath, experimentPath, parentFolderPath);
 			}
 		}
 		
