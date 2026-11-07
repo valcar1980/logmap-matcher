@@ -137,13 +137,14 @@ public class MakeLogMapBioMappings{
 			
 			
 			// apply repair to unique mappings	
+			System.out.println("Starting repair of new mappings");
 			OWLOntology sourceOnto = new OntologyLoader("file:" + sourceOntoPath).getOWLOntology();
 			OWLOntology targetOnto = new OntologyLoader("file:" + targetOntoPath).getOWLOntology();
 			LogMap3_RepairFacility repairOperator = new LogMap3_RepairFacility(sourceOnto,targetOnto,logMaps,newMappings);
 			Set<MappingObjectStr> newMappings_repaired = repairOperator.getCleanMappings();
+			System.out.println("Completed repair of new mappings");
 			
-			
-			// combine logmap and new repaired mappings
+						// combine logmap and new repaired mappings
 			logMapBioMaps = new HashSet<MappingObjectStr>(newMappings_repaired);
 			logMapBioMaps.addAll(logMaps);
 			
@@ -156,8 +157,11 @@ public class MakeLogMapBioMappings{
 	}
 
 	public static void main(String[] args) {
-		String experimentPath = "/home/valentina/Data/logmapbiollm-paper/CTLM28_mappings_for_OAEI_evaluator/experiment_small.json";
-		String parentFolderPath = "/home/valentina/Data/logmapbiollm-paper/CTLM28_mappings_for_OAEI_evaluator/mappings/";
+		//String experimentPath = "/home/valentina/Data/logmapbiollm-paper/CTLM28_mappings_for_OAEI_evaluator/experiment_logmapbio_mappings.json";
+		String experimentPath = args[0];
+		// String parentFolderPath = "/home/valentina/Data/logmapbiollm-paper/CTLM28_mappings_for_OAEI_evaluator/mappings/";
+		String parentFolderPath = args[1];
+		MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
 		MakeLogMapBioMappings fullExperimentSet = new MakeLogMapBioMappings();
 		fullExperimentSet.readExperimentList(experimentPath);
 		fullExperimentSet.printExperimentList();
@@ -166,19 +170,28 @@ public class MakeLogMapBioMappings{
 			JsonNode tmpExp = tmp.get(exp);
 			File checkFolder = new File(parentFolderPath,exp);
 			if (checkFolder.exists() && checkFolder.isDirectory()) {
-				System.out.println("Already exists, skipping experiment: " + exp);
+				System.out.println("Folder Already exists for experiment "+ exp);
 			}
-			else {
+			
 				
 				System.out.println("New experiment: " + exp);
 			HashMap<String,String> singleExperimentConfig = fullExperimentSet.readExperimentConfigs(tmpExp);
-			
+			String sourceOntoPath = singleExperimentConfig.get("source_onto_path");
+			String targetOntoPath = singleExperimentConfig.get("target_onto_path");
 			if(singleExperimentConfig.get("experiment_type").equals("logmapbio")) {
-				String outputPath = new File(parentFolderPath, exp).toString();
-				Set<MappingObjectStr> logMapBioMaps = fullExperimentSet.runLogMapBioExperiment(singleExperimentConfig,outputPath);
-				//moUtils.saveOntologyMappings(logMapBioMaps, parentFolderPath, sourceOntoPath, targetOntoPath);
+				String outputDirPath = new File(parentFolderPath, exp).toString();
+				File outputFilePath = new File(outputDirPath, "logmapbiomaps.txt");
+//				if(outputFilePath.exists() && outputFilePath.isFile()) {
+//					System.out.println("Found maps" + outputFilePath.toString() + "\t skipping");
+//					continue;
+//				}else {
+					Set<MappingObjectStr> logMapBioMaps = fullExperimentSet.runLogMapBioExperiment(singleExperimentConfig,outputDirPath);
+						
+						System.out.println("Final mappings count for LogMapBio " + logMapBioMaps.size());
+						System.out.println("Saving logMapBioMaps in file " + outputFilePath.toString());
+						moUtils.saveOntologyMappings(logMapBioMaps, outputFilePath.toString(), sourceOntoPath, targetOntoPath);
+				
 				}
-			}
 		}
 	}
 }

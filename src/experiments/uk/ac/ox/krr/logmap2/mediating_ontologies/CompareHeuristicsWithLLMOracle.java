@@ -147,7 +147,7 @@ public class CompareHeuristicsWithLLMOracle{
 		}
 			
 		
-		comparer.writeVotingMatrixToFile(votingMatrix, outPath, false);
+		//comparer.writeVotingMatrixToFile(votingMatrix, outPath, false);
 		
 
 		
@@ -178,7 +178,7 @@ public class CompareHeuristicsWithLLMOracle{
 	        }
 		}
 		System.out.println("The mappings passing the heuristic threshold are " + countPassedThreshold + " out of " + votingMatrix.size());
-		comparer.writeVotingMatrixToFile(votingMatrix, outPath2, true);
+		//comparer.writeVotingMatrixToFile(votingMatrix, outPath2, true);
 		
 		
 		// Now compare to reference to get Sensitivity, Specificity and Youden's index

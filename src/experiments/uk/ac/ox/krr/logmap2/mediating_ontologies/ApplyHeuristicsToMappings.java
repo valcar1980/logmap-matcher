@@ -38,6 +38,8 @@ public class ApplyHeuristicsToMappings{
 	String heuristicsVotingMatrixPath;
 	String heuristicsFilteredMappingsPath;
 	String heursticsDiscardedMappingsPath;
+	
+	public ApplyHeuristicsToMappings() {}
 
 	public ApplyHeuristicsToMappings(String onto1, String onto2, String newMaps, String moDir, String baseDir) {
 		

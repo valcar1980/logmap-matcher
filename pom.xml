@@ -365,6 +365,25 @@
           </execution>
         </executions>
       </plugin>
+      
+       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <!-- Double-check your folder name! If it has an 's', use src/experiments/java -->
+                <source>src/experiments</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
   
     </plugins>
   
