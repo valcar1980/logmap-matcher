@@ -1,4 +1,6 @@
 package uk.ac.ox.krr.logmap2.mediating_ontologies;
+import java.util.HashMap;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 
@@ -20,6 +22,7 @@ interface SingleExperimentInterface {
 interface ExperimentListInterface {
 	
 	public void readExperimentList(String experimentPath);
+	public HashMap<String,String> readExperimentConfigs(JsonNode experimentConfig);
 	
 
 }

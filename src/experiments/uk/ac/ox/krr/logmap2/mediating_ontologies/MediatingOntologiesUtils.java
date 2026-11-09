@@ -88,7 +88,12 @@ public class MediatingOntologiesUtils {
 	 * @return
 	 */
 	public Set<MappingObjectStr> readAnnotatedMappingsFromTSV(String fullPath, String readOption) {
-
+		
+		if(!fullPath.endsWith(".tsv")) {
+			throw new IllegalArgumentException("Expecting .tsv"); // Inherits from RuntimeException
+		}
+		
+		
 		if(!(readOption.equals("onlyTrue") || readOption.equals("allMappings"))) {
 			System.out.println("Wrong TSV reading option provided, check for typos");
 			return null;

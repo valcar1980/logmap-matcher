@@ -19,7 +19,7 @@ import uk.ac.ox.krr.logmap2.LogMap3_RepairFacility;
 import uk.ac.ox.krr.logmap2.OntologyLoader;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 
-public class MakeLogMapBioMappings{
+public class MakeLogMapBioMappings implements ExperimentListInterface{
 	MediatingOntologiesUtils moUtils = new MediatingOntologiesUtils();
 	public Map<String,JsonNode> experimentSet;
 	
