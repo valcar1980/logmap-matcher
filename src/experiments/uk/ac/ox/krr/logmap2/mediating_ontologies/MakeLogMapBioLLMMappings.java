@@ -32,6 +32,8 @@ import uk.ac.ox.krr.logmap2.io.ReadFile;
 import uk.ac.ox.krr.logmap2.mappings.objects.MappingObjectStr;
 import uk.ac.ox.krr.logmap2.oaei.reader.FlatAlignmentReader;
 import uk.ac.ox.krr.logmap2.oaei.reader.MappingsReaderManager;
+import uk.ac.ox.krr.logmap2.reasoning.ReasonerManager;
+import uk.ac.ox.krr.logmap2.reasoning.SatisfiabilityIntegration;
 
 //import uk.ac.ox.krr.logmap2.oaei.reader.FlatAlignmentReader;
 
@@ -142,7 +144,7 @@ public class MakeLogMapBioLLMMappings implements ExperimentListInterface {
 		Set<MappingObjectStr> mappingsLogMapBioLLM;
 		MakeLogMapBioLLMMappings setup = new MakeLogMapBioLLMMappings();
 		//to store to file mappings
-		String outputFilename = parentFolderPath + "logmapbiollm-mappings";
+		String outputFilename = new File(parentFolderPath, "logmapbiollm-mappings").toString();
 		
 		String sourceOntoPath = singleExperimentConfig.get("source_onto_path");
 		String targetOntoPath = singleExperimentConfig.get("target_onto_path");
@@ -218,6 +220,9 @@ public class MakeLogMapBioLLMMappings implements ExperimentListInterface {
 		 * Second step of repair - apply to all
 		 */
 		System.out.println("\n\n***Second repair***");
+		// Check MergeAxiomsFromOracle for full 3 options for repair. Two-step requires satisfiability
+		SatisfiabilityIntegration.setReasoner(ReasonerManager.ELK);
+		
 		//Repair all together just in case
 		LogMap2_RepairFacility LogMapBioLLM_repair2 = new LogMap2_RepairFacility(
 				onto1, 
@@ -225,7 +230,7 @@ public class MakeLogMapBioLLMMappings implements ExperimentListInterface {
 				LogMapBioLLM_repair1,
 				false, //overlapping
 				false, //always optimal?
-				false, //satisfiability_check,
+				true, //satisfiability_check,
 				outputFilename);
 		
 		
@@ -271,8 +276,10 @@ public class MakeLogMapBioLLMMappings implements ExperimentListInterface {
 		/*
 		 * Set-up
 		 */
-		String experimentPath = "/home/valentina/Data/logmapbiollm_paper/table_2_results/experiment_logmapbiollm_bioml2025.json";
-		String parentFolderPath = "/home/valentina/Data/logmapbiollm_paper/table_2_results/mappings/";
+		//String experimentPath = "/home/valentina/Data/logmapbiollm_paper/table_2_results/experiment_logmapbiollm_bioml2025.json";
+		//String parentFolderPath = "/home/valentina/Data/logmapbiollm_paper/table_2_results/mappings/";
+		String experimentPath = args[0];
+		String parentFolderPath = args[1];
 		MakeLogMapBioLLMMappings fullExperimentSet = new MakeLogMapBioLLMMappings();
 		fullExperimentSet.readExperimentList(experimentPath);		
 		fullExperimentSet.printExperimentList();
@@ -294,9 +301,13 @@ public class MakeLogMapBioLLMMappings implements ExperimentListInterface {
 			}
 			//TODO filter list of experiments to only contain what we want (logmapbiollm) when we read the experiment list,not here
 			if(singleExperimentConfig.get("experiment_type").equals("logmapbiollm")) {
-				String outputDirPath = new File(parentFolderPath, exp).toString();
-				Set<MappingObjectStr> mappingsLogMapBioLLM = fullExperimentSet.runLogMapBioLLMExperiment(singleExperimentConfig, parentFolderPath);
-				fullExperimentSet.saveOntologyMappings(mappingsLogMapBioLLM, singleExperimentConfig, outputDirPath);
+				File outputDirPath = new File(parentFolderPath, exp);
+				if(!outputDirPath.exists()) {
+					outputDirPath.mkdir();
+					}
+				fullExperimentSet.runLogMapBioLLMExperiment(singleExperimentConfig, outputDirPath.toString());
+				//Set<MappingObjectStr> mappingsLogMapBioLLM = fullExperimentSet.runLogMapBioLLMExperiment(singleExperimentConfig, outputDirPath);
+				//fullExperimentSet.saveOntologyMappings(mappingsLogMapBioLLM, singleExperimentConfig, outputDirPath);
 			}
 		}
 	}

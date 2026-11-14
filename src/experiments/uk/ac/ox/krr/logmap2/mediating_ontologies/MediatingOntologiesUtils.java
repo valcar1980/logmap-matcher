@@ -89,11 +89,6 @@ public class MediatingOntologiesUtils {
 	 */
 	public Set<MappingObjectStr> readAnnotatedMappingsFromTSV(String fullPath, String readOption) {
 		
-		if(!fullPath.endsWith(".tsv")) {
-			throw new IllegalArgumentException("Expecting .tsv"); // Inherits from RuntimeException
-		}
-		
-		
 		if(!(readOption.equals("onlyTrue") || readOption.equals("allMappings"))) {
 			System.out.println("Wrong TSV reading option provided, check for typos");
 			return null;
@@ -117,9 +112,7 @@ public class MediatingOntologiesUtils {
 				if (line.indexOf("\t") < 0) {
 					continue;
 				}
-
 				lineElements = line.split("\t");
-
 				/*
 				 * Two options, retrieve only true mappings or retrieve all of them
 				 */
@@ -127,6 +120,7 @@ public class MediatingOntologiesUtils {
 				if (readOption.equals("onlyTrue")) {
 
 					// if the value at position 5 is true, add to mappings
+					
 					if (Boolean.parseBoolean(lineElements[5].toLowerCase())) {
 						// System.out.println("Found some truth!");
 						// TODO it might not be equivalence, I need to check elements[2]
@@ -156,7 +150,8 @@ public class MediatingOntologiesUtils {
 			reader.closeBuffer();
 			System.out.println("Num mapping in oracle: " + countTrue);
 			System.out.println("Num mapping NOT in oracle: " + countFalse);
-		} catch (FileNotFoundException e) {
+		
+		}catch (FileNotFoundException e) {
 			System.out.println("Error reading file " + fullPath + " mapping set to null");
 			mapSet = null;
 			e.printStackTrace();
